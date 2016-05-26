@@ -8,7 +8,6 @@ import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -31,7 +30,8 @@ public class UpdateLowerMojo extends AbstractMojo {
   @Parameter(required = true, readonly = true, property = "project")
   protected MavenProject project;
 
-  @Component MavenSession mavenSession;
+  @Parameter(defaultValue = "${session}", readonly = true)
+  protected MavenSession mavenSession;
 
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {

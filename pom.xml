@@ -11,6 +11,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
+    <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
   </properties>
@@ -20,12 +21,16 @@
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
       <version>3.4</version>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>3.0.22</version>
+      <artifactId>plexus-component-annotations</artifactId>
+      <version>1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.sisu</groupId>
+      <artifactId>org.eclipse.sisu.plexus</artifactId>
+      <version>0.3.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -38,20 +43,14 @@
       <version>3.3.9</version>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-compiler-api</artifactId>
-      <version>2.3</version>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>3.0</version>
     </dependency>
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
       <version>1.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -65,6 +64,7 @@
         <configuration>
           <tiles>
             <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.0.0,3.0.0)</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.0.0,4.0.0)</tile>
           </tiles>
         </configuration>
       </plugin>
