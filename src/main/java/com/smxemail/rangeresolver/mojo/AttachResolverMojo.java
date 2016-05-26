@@ -23,7 +23,8 @@ public class AttachResolverMojo extends AbstractMojo {
 
   @Component MavenProjectHelper projectHelper;
 
-  @Component MavenSession mavenSession;
+  @Parameter(defaultValue = "${session}", readonly = true)
+  protected MavenSession mavenSession;
 
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
