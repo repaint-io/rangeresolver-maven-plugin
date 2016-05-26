@@ -1,17 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
   <version>1.0.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
-
   <name>rangeresolver-maven-plugin Maven Mojo</name>
   <url>http://maven.apache.org</url>
-
+  <properties>
+    <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
+    <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
+  </properties>
   <dependencies>
-
     <dependency>
       <groupId>org.apache.maven.plugin-tools</groupId>
       <artifactId>maven-plugin-annotations</artifactId>
@@ -38,32 +40,29 @@
       <artifactId>plexus-compiler-api</artifactId>
       <version>2.3</version>
     </dependency>
-
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.0.1-SNAPSHOT</version>
+      <version>1.0.1</version>
     </dependency>
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.12</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
-
   <build>
     <plugins>
       <plugin>
-        <groupId>com.theoryinpractise</groupId>
-        <artifactId>googleformatter-maven-plugin</artifactId>
-        <version>1.0.4</version>
+        <groupId>io.repaint.maven</groupId>
+        <artifactId>tiles-maven-plugin</artifactId>
+        <version>2.8</version>
+        <extensions>true</extensions>
         <configuration>
-          <maxWidth>160</maxWidth>
-          <sortImports>ALSO</sortImports>
-          <javadocFormatter>ECLIPSE</javadocFormatter>
+          <tiles>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.0.0,3.0.0)</tile>
+          </tiles>
         </configuration>
       </plugin>
       <plugin>
@@ -112,11 +111,14 @@
               <goal>descriptor</goal>
             </goals>
           </execution>
-          <!-- if you want to generate help goal -->
-          <!--<execution><id>help-goal</id><goals><goal>helpmojo</goal></goals></execution>-->
+          <execution>
+            <id>help-goal</id>
+            <goals>
+              <goal>helpmojo</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>
