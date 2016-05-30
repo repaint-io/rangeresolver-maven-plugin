@@ -11,6 +11,7 @@
   <url>http://maven.apache.org</url>
 
   <properties>
+    <dependency.check.fastfail>false</dependency.check.fastfail>
     <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
@@ -46,6 +47,23 @@
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
       <version>3.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-api</artifactId>
+      <version>1.9.4</version>
+      </dependency>
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-manager-plexus</artifactId>
+      <version>1.9.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.maven.scm</groupId>
+      <artifactId>maven-scm-providers-standard</artifactId>
+      <version>1.9.4</version>
+      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>com.smxemail</groupId>
