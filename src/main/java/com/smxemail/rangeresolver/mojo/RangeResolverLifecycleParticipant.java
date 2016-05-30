@@ -21,7 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import static com.smxemail.rangeresolver.mojo.Support.resolveDepsFile;
+import static com.smxemail.rangeresolver.mojo.AbstractRangeResolverMojo.resolveDepsFile;
 
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "RangeResolverLifecycleParticipant")
 public class RangeResolverLifecycleParticipant extends AbstractMavenLifecycleParticipant {

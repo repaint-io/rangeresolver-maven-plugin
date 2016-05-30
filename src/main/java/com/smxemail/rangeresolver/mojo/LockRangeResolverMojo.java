@@ -3,13 +3,9 @@ package com.smxemail.rangeresolver.mojo;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.FileReader;
@@ -18,20 +14,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
-import static com.smxemail.rangeresolver.mojo.Support.resolveDepsFile;
 
 @Mojo(name = "lock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
-public class LockRangeResolverMojo extends AbstractMojo {
-
-  @Parameter(required = true, readonly = true, property = "project")
-  protected MavenProject project;
-
-  @Parameter(defaultValue = "${session}", readonly = true)
-  protected MavenSession mavenSession;
+public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
 
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
-      File deps = resolveDepsFile(mavenSession);
+      File deps = resolveDepsFile();
       if (deps.exists()) {
         try {
           getLog().info("Locking resolved ranges...");
@@ -44,6 +33,7 @@ public class LockRangeResolverMojo extends AbstractMojo {
           RangeResolver updated = rangeResolver.withResolved().withLocked(allResolved);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
+          addDepsFileToWorkingSet();
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);
         }
