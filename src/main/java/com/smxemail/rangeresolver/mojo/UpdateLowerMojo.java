@@ -39,7 +39,6 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
           RangeResolver updated = rangeResolver.withResolves(updatedLowerBounds);
           writeRangeResolveSource(updated, new FileWriter(deps));
-          addDepsFileToWorkingSet();
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);
         }
