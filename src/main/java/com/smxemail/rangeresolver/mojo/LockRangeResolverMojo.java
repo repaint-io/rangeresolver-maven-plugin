@@ -33,7 +33,6 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
           RangeResolver updated = rangeResolver.withResolved().withLocked(allResolved);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
-          addDepsFileToWorkingSet();
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);
         }
