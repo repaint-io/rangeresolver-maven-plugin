@@ -57,8 +57,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   protected void commitChangesToDependencies(File deps, String message) throws MojoExecutionException {
-    if (project.getVersion().endsWith("-SNAPSHOT")) {
-      getLog().info("Project is a SNAPSHOT, skipping commit: " + message);
+    if (!projectIsReleasing()) {
+      getLog().info("Project is not being released, skipping commit: " + message);
     } else {
       try {
         String connectionUrl = MoreObjects.firstNonNull(project.getScm().getConnection(), project.getScm().getDeveloperConnection());
@@ -89,6 +89,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
         throw new MojoExecutionException(e.getMessage(), e);
       }
     }
+  }
+
+  private boolean projectIsReleasing() {
+    return new File(project.getBasedir(), "release.properties").exists();
   }
 
   private boolean containsDepChange(StatusScmResult statusScmResult, File deps) {
