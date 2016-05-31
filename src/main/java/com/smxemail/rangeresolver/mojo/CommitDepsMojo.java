@@ -5,9 +5,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.scm.ScmException;
+import org.apache.maven.scm.ScmFile;
 import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.command.add.AddScmResult;
 import org.apache.maven.scm.command.checkin.CheckInScmResult;
+import org.apache.maven.scm.command.status.StatusScmResult;
 import org.apache.maven.scm.repository.ScmRepository;
 
 import java.io.File;
@@ -33,8 +35,9 @@ public class CommitDepsMojo extends AbstractRangeResolverMojo {
       ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
       File baseDir = deps.getAbsoluteFile().getParentFile();
       ScmFileSet scmFileSet = new ScmFileSet(baseDir, deps.getName());
+      StatusScmResult statusScmResult = scmManager.status(repository, scmFileSet);
 
-      if (!scmManager.status(repository, scmFileSet).getChangedFiles().isEmpty()) {
+      if (containsDepChange(statusScmResult, deps)) {
 
         getLog().info(String.format("Committing deps changes to %s", connectionUrl));
         AddScmResult addResult = scmManager.add(repository, scmFileSet);
@@ -52,5 +55,15 @@ public class CommitDepsMojo extends AbstractRangeResolverMojo {
     } catch (IOException | ScmException e) {
       throw new MojoExecutionException(e.getMessage(), e);
     }
+  }
+
+  private boolean containsDepChange(StatusScmResult statusScmResult, File deps) {
+
+    for (ScmFile scmFile : statusScmResult.getChangedFiles()) {
+      if (scmFile.getPath().contains(deps.getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 }
