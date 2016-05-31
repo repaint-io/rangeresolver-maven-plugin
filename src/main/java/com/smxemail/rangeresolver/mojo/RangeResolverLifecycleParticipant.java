@@ -1,6 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.smxemail.rangeresolver.api.RangeResolver;
+import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
@@ -19,7 +20,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 
 import static com.smxemail.rangeresolver.mojo.AbstractRangeResolverMojo.resolveDepsFile;
 
@@ -48,9 +48,9 @@ public class RangeResolverLifecycleParticipant extends AbstractMavenLifecyclePar
       if (rangeResolver.resolved().isEmpty() && rangeResolver.locked().isEmpty()) {
         logger.info("No resolution found - performing in-place resolve...");
 
-        List<Resolved> resolvedThings = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
+        ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
 
-        for (Resolved thing : resolvedThings) {
+        for (Resolved thing : resolvedThings.resolveds()) {
           session.getUserProperties().setProperty(thing.propertyName(), thing.version());
         }
       }
