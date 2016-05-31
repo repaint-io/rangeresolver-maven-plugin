@@ -1,6 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.smxemail.rangeresolver.api.RangeResolver;
+import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolve;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
@@ -33,7 +34,8 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
-          Map<String, Resolved> resolvedThings = mapResolvedThingsByKey(repositoryResolver.resolveRanges(rangeResolver, deps.getPath()));
+          ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
+          Map<String, Resolved> resolvedThings = mapResolvedThingsByKey(resolutionResult.resolveds());
 
           List<Resolve> updatedLowerBounds = rangeResolver.resolves().stream().map(res -> resolveLowerBound(resolvedThings, res)).collect(Collectors.toList());
 

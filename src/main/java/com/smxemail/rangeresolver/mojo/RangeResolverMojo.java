@@ -1,7 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.Resolved;
+import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -11,7 +11,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.List;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 
@@ -32,8 +31,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
-          List<Resolved> resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource);
-          RangeResolver updated = rangeResolver.withResolved(resolvedThings);
+          ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource);
+          RangeResolver updated = rangeResolver.withResolved(resolvedThings.resolveds());
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies(deps, "Updated dependency ranges.");
