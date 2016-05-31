@@ -36,6 +36,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           RangeResolver updated = rangeResolver.withResolved(resolvedThings);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
+          commitChangesToDependencies(deps, "Updated dependency ranges.");
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);
         }
