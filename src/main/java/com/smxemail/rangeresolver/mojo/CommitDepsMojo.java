@@ -4,12 +4,14 @@ import com.google.common.base.MoreObjects;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.scm.ScmException;
 import org.apache.maven.scm.ScmFile;
 import org.apache.maven.scm.ScmFileSet;
 import org.apache.maven.scm.command.add.AddScmResult;
 import org.apache.maven.scm.command.checkin.CheckInScmResult;
 import org.apache.maven.scm.command.status.StatusScmResult;
+import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.repository.ScmRepository;
 
 import java.io.File;
@@ -17,6 +19,9 @@ import java.io.IOException;
 
 @Mojo(name = "commit-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class CommitDepsMojo extends AbstractRangeResolverMojo {
+
+  @Parameter
+  boolean pushChanges = false;
 
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
@@ -33,6 +38,9 @@ public class CommitDepsMojo extends AbstractRangeResolverMojo {
     try {
       String connectionUrl = MoreObjects.firstNonNull(project.getScm().getConnection(), project.getScm().getDeveloperConnection());
       ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
+      ScmProviderRepository providerRepo = repository.getProviderRepository();
+      providerRepo.setPushChanges( pushChanges );
+
       File baseDir = deps.getAbsoluteFile().getParentFile();
       ScmFileSet scmFileSet = new ScmFileSet(baseDir, deps.getName());
       StatusScmResult statusScmResult = scmManager.status(repository, scmFileSet);
