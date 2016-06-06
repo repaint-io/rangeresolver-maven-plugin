@@ -50,7 +50,7 @@ public class RangeResolverLifecycleParticipant extends AbstractMavenLifecyclePar
 
         ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
 
-        for (Resolved thing : resolvedThings.resolveds()) {
+        for (Resolved thing : resolvedThings.resolved()) {
           session.getUserProperties().setProperty(thing.propertyName(), thing.version());
         }
       }

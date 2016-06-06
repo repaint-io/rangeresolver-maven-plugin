@@ -32,7 +32,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
           ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource);
-          RangeResolver updated = rangeResolver.withResolved(resolvedThings.resolveds());
+          RangeResolver updated = rangeResolver.withResolved(resolvedThings.resolved());
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies(deps, "Updated dependency ranges.");
