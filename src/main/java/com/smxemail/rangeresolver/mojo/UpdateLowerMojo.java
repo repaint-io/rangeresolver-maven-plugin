@@ -35,7 +35,8 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
           ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
-          Map<String, Resolved> resolvedThings = mapResolvedThingsByKey(resolutionResult.resolveds());
+
+          Map<String, Resolved> resolvedThings = resolutionResult.resolved().stream().collect(Resolved.collectByKey);
 
           List<Resolve> updatedLowerBounds = rangeResolver.resolves().stream().map(res -> resolveLowerBound(resolvedThings, res)).collect(Collectors.toList());
 
