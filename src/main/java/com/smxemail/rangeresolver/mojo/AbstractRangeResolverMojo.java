@@ -35,6 +35,9 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   @Parameter(defaultValue = "${session}", readonly = true)
   MavenSession mavenSession;
 
+  @Parameter(required = true, defaultValue = "${project.build.outputDirectory}")
+  File outputDirectory;
+
   protected File resolveDepsFile() {
     return resolveDepsFile(mavenSession);
   }
