@@ -7,9 +7,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 
-@Mojo(name = "attach-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
+@Mojo(name = "attach-deps", defaultPhase = LifecyclePhase.VERIFY, inheritByDefault = false)
 public class AttachResolverMojo extends AbstractRangeResolverMojo {
-
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
