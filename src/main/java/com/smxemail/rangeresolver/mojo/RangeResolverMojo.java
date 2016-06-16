@@ -18,7 +18,6 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public void execute() throws MojoExecutionException {
-
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
       if (deps.exists()) {
@@ -27,7 +26,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
-
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
