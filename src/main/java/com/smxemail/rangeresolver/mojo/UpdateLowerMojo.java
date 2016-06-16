@@ -61,6 +61,11 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
   }
 
   private Resolve updateLowerBound(Resolve res, String version) {
-    return res.withRange(res.range().withLower(version));
+    try {
+      return res.withRange(res.range().withLower(version));
+    } catch (Exception e) {
+      getLog().warn(String.format("Unable to update lower bound of %s with %s: %s", res.range().asVersionRange(), version, e.getMessage() ));
+      return res;
+    }
   }
 }
