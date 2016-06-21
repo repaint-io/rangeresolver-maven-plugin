@@ -47,7 +47,7 @@ public class InterpolateModulesMojo extends AbstractRangeResolverMojo {
   private void interpolateIdeaModuleFile(String root, File moduleFile) {
     String relativeModuleFileName = moduleFile.getPath().substring(root.length() + 1);
     getLog().info(String.format("Interpolating IntelliJ Module: %s", relativeModuleFileName));
-    File originalImlFile = new File(moduleFile.getName() + ".orig");
+    File originalImlFile = new File(moduleFile.getAbsolutePath() + ".orig");
 
     // if original .iml file doesn't exists, rename the existing one for re-interpolation
     if (!originalImlFile.exists()) {
