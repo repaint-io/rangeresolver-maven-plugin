@@ -13,7 +13,7 @@ public class AttachResolverMojo extends AbstractRangeResolverMojo {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
       if (deps.exists()) {
-        getLog().info("Attaching deps as bill-of-materials...");
+        getLog().info("Attaching pom.deps as bill-of-materials artifact...");
         projectHelper.attachArtifact(project, RepositoryResolver.DEPS, RepositoryResolver.BILL_OF_MATERIALS, deps);
       } else {
         getLog().warn("Skipping bill-of-materials - deps file is missing.");
