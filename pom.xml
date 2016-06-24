@@ -4,7 +4,7 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.0.20-SNAPSHOT</version>
+  <version>1.0.21-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
@@ -74,6 +74,11 @@
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
       <version>1.0.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom2</artifactId>
+      <version>2.0.6</version>
     </dependency>
   </dependencies>
 
