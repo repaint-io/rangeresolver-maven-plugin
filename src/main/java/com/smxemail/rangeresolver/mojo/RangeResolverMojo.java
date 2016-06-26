@@ -9,11 +9,11 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.jdom2.Comment;
+import org.jdom2.Content;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
-import org.jdom2.Text;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
@@ -26,8 +26,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
@@ -46,6 +49,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   public static final String VERSION = "version";
 
   public static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
+
+  public static final String EXCLUSIONS = "exclusions";
+
+  public static final String EXCLUSION = "exclusion";
+
+  public static final String RESOLVED_FROM = " resolved from ";
+
+  public static final String SCOPE = "scope";
+
+  private static final Pattern exclusionScopes = Pattern.compile("(compile|runtime)", Pattern.CASE_INSENSITIVE);
 
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
@@ -130,15 +143,50 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         String depKey = keyForMavenDependency(dependency);
         if (resolvedItems.containsKey(depKey)) {
           Resolved resolved = resolvedItems.get(depKey);
+
+          // Replace version
           Element version = dependency.getChild(VERSION, NAMESPACE);
-          if (version != null && !version.getText().contains("-SNAPSHOT")) {
-            version.removeContent();
-            version.addContent(new Text(String.format("[%s]", resolved.version())));
-            version.addContent(new Comment("resolved from " + resolved.resolvedFrom()));
+          if (version != null) {
+            if (!version.getText().contains("-SNAPSHOT")) {
+              version.setText(String.format("[%s]", resolved.version()));
+            }
+
+            Element scope = dependency.getChild(SCOPE, NAMESPACE);
+
+            if (scope == null || exclusionScopes.matcher(scope.getText()).matches()) {
+
+              // Exclude transitive dependencies from compile time scoped items.
+              dependency.removeChild(EXCLUSIONS, NAMESPACE);
+              Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
+              Element exclusion = new Element(EXCLUSION, NAMESPACE);
+              exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText("*"));
+              exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText("*"));
+              exclusions.addContent(exclusion);
+              dependency.addContent(exclusions);
+            }
+
+            // yank resolved comment
+            Comment comment = yankResolvedComment(dependency).orElse(new Comment(""));
+            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
+            dependency.addContent(comment);
           }
         }
       }
     }
+  }
+
+  private Optional<Comment> yankResolvedComment(Element element) {
+    List<Content> contents = element.getContent();
+    for (Content content : contents) {
+      if (content instanceof Comment) {
+        Comment comment = (Comment) content;
+        if (comment.getText().startsWith(RESOLVED_FROM)) {
+          comment.detach();
+          return Optional.of(comment);
+        }
+      }
+    }
+    return Optional.empty();
   }
 
   private String keyForMavenDependency(Element dependency) {
