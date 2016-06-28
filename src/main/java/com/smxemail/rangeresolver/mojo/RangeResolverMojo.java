@@ -136,20 +136,24 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Element projectElem) {
+
+    // get keys for projects in the reactor so that we can skip re-resolving them
+    Set<String> reactorKeys = mavenSession.getAllProjects().stream()
+        .map(project -> project.getGroupId() + ":" + project.getArtifactId())
+        .collect(Collectors.toSet());
+
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
     if (dependencies != null) {
       for (Element dependency : dependencies.getChildren()) {
 
         String depKey = keyForMavenDependency(dependency);
-        if (resolvedItems.containsKey(depKey)) {
+        if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
           Resolved resolved = resolvedItems.get(depKey);
 
           // Replace version
           Element version = dependency.getChild(VERSION, NAMESPACE);
           if (version != null) {
-            if (!version.getText().contains("-SNAPSHOT")) {
-              version.setText(String.format("[%s]", resolved.version()));
-            }
+            version.setText(String.format("[%s]", resolved.version()));
 
             Element scope = dependency.getChild(SCOPE, NAMESPACE);
 
