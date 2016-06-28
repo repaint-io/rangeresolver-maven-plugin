@@ -45,9 +45,9 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   public static File resolveDepsFile(MavenSession mavenSession) {
-    File pomFile = mavenSession.getRequest().getPom().getAbsoluteFile();
+    File pomFile = mavenSession.getRequest().getPom();
     String pomBaseName = pomFile.getName().substring(0, pomFile.getName().lastIndexOf(".") + 1);
-    return new File(pomBaseName + "deps");
+    return new File(pomBaseName + "deps").getAbsoluteFile();
   }
 
   protected void commitChangesToDependencies(String message, File file) throws MojoExecutionException {
