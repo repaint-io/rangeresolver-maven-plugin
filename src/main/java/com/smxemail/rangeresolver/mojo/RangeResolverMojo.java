@@ -16,6 +16,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
+import org.jdom2.output.LineSeparator;
 import org.jdom2.output.XMLOutputter;
 
 import java.io.File;
@@ -128,7 +129,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       String relativePomFileName = newPomFile.getPath().substring(project.getBasedir().getPath().length() + 1);
       getLog().info("Rewriting dependencies in " + relativePomFileName);
-      new XMLOutputter(Format.getPrettyFormat()).output(pomDocument, new FileWriter(newPomFile));
+
+      Format format = Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM);
+      new XMLOutputter(format).output(pomDocument, new FileWriter(newPomFile));
 
     } catch (IOException | JDOMException e) {
       throw new RuntimeException(e.getMessage(), e);
