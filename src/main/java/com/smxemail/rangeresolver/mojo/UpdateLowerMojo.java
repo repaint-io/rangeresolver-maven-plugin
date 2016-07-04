@@ -54,18 +54,13 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
   private Resolve resolveLowerBound(Map<String, Resolved> resolvedThings, Resolve res) {
     if (resolvedThings.containsKey(res.key())) {
-      return updateLowerBound(res, resolvedThings.get(res.key()).version());
+      return updateLowerBound(res, resolvedThings.get(res.key()).constrainedRange().upper());
     } else {
       return res;
     }
   }
 
   private Resolve updateLowerBound(Resolve res, String version) {
-    try {
-      return res.withRange(res.range().withLower(version));
-    } catch (Exception e) {
-      getLog().warn(String.format("Unable to update lower bound of %s with %s: %s", res.range().asVersionRange(), version, e.getMessage()));
-      return res;
-    }
+    return res.withRange(res.range().withLower(version));
   }
 }
