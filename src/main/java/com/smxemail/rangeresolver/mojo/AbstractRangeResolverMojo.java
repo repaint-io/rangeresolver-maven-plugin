@@ -16,8 +16,14 @@ import org.apache.maven.scm.command.status.StatusScmResult;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.repository.ScmRepository;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
@@ -98,4 +104,16 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
     return !Collections.disjoint(fileNames, scmPaths);
   }
+
+  protected String getSourceReference(MavenSession session) throws ParserConfigurationException, SAXException, IOException {
+    File pomFile = session.getRequest().getPom();
+    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    DocumentBuilder db = dbf.newDocumentBuilder();
+    Document doc = db.parse(pomFile);
+    String groupId = doc.getElementsByTagName("groupId").item(0).getTextContent();
+    String artifactId = doc.getElementsByTagName("artifactId").item(0).getTextContent();
+    String version = doc.getElementsByTagName("version").item(0).getTextContent();
+    return String.format("%s:%s:%s", groupId, artifactId, version);
+  }
+
 }
