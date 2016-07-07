@@ -24,7 +24,7 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
       if (deps.exists()) {
         try {
           getLog().info("Locking resolved ranges...");
-          String resolutionSource = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
+          String resolutionSource = gav(project);
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
           List<Resolved> allResolved = new ArrayList<>();
