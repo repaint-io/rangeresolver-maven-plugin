@@ -2,6 +2,7 @@ package com.smxemail.rangeresolver.mojo;
 
 import com.google.common.base.MoreObjects;
 import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -105,15 +106,26 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     return !Collections.disjoint(fileNames, scmPaths);
   }
 
-  protected String getSourceReference(MavenSession session) throws ParserConfigurationException, SAXException, IOException {
-    File pomFile = session.getRequest().getPom();
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    DocumentBuilder db = dbf.newDocumentBuilder();
-    Document doc = db.parse(pomFile);
-    String groupId = doc.getElementsByTagName("groupId").item(0).getTextContent();
-    String artifactId = doc.getElementsByTagName("artifactId").item(0).getTextContent();
-    String version = doc.getElementsByTagName("version").item(0).getTextContent();
-    return String.format("%s:%s:%s", groupId, artifactId, version);
+  protected String gav(Dependency undeclaredDependency) {
+    return undeclaredDependency.getGroupId() + ":" + undeclaredDependency.getArtifactId() + ":" + undeclaredDependency.getVersion();
   }
 
+  protected String gav(MavenProject mavenProject) {
+    return mavenProject.getGroupId() + ":" + mavenProject.getArtifactId() + ":" + mavenProject.getVersion();
+  }
+
+  protected String getSourceReference(MavenSession session) {
+    try {
+      File pomFile = session.getRequest().getPom();
+      DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+      DocumentBuilder db = dbf.newDocumentBuilder();
+      Document doc = db.parse(pomFile);
+      String groupId = doc.getElementsByTagName("groupId").item(0).getTextContent();
+      String artifactId = doc.getElementsByTagName("artifactId").item(0).getTextContent();
+      String version = doc.getElementsByTagName("version").item(0).getTextContent();
+      return String.format("%s:%s:%s", groupId, artifactId, version);
+    } catch (SAXException | ParserConfigurationException | IOException e) {
+      return "";
+    }
+  }
 }

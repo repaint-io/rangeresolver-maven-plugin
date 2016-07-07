@@ -69,7 +69,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
-          String resolutionSource = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
+          String resolutionSource = gav(project);
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
@@ -141,9 +141,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Element projectElem) {
 
     // get keys for projects in the reactor so that we can skip re-resolving them
-    Set<String> reactorKeys = mavenSession.getAllProjects().stream()
-        .map(project -> project.getGroupId() + ":" + project.getArtifactId())
-        .collect(Collectors.toSet());
+    Set<String> reactorKeys =
+        mavenSession.getAllProjects().stream().map(project -> project.getGroupId() + ":" + project.getArtifactId()).collect(Collectors.toSet());
 
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
     if (dependencies != null) {

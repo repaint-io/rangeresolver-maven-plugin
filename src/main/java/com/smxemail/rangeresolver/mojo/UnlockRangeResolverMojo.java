@@ -22,7 +22,7 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
       if (deps.exists()) {
         getLog().info("Unlocking resolved ranges...");
         try {
-          String resolutionSource = project.getGroupId() + ":" + project.getArtifactId() + ":" + project.getVersion();
+          String resolutionSource = gav(project);
           RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
           RangeResolver updated = unlockDependencies(rangeResolver);

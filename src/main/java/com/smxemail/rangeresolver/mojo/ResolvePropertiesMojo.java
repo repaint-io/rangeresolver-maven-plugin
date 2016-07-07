@@ -7,9 +7,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,12 +35,11 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
           }
         }
 
-      } catch (SAXException | ParserConfigurationException | IOException e) {
+      } catch (IOException e) {
         throw new MojoExecutionException(e.getMessage(), e);
       }
     } else {
       getLog().warn("Skipping property resolution - deps file is missing.");
     }
   }
-
 }
