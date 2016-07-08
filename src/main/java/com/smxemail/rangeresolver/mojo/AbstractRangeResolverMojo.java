@@ -32,6 +32,12 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
+  public static final String GAV_FORMAT = "%s:%s:%s";
+
+  public static final String WILDCARD = "*";
+
+  public static final String KEY_FORMAT = "%s:%s";
+
   @Component ScmManager scmManager;
 
   @Component MavenProjectHelper projectHelper;
@@ -107,11 +113,11 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   protected String gav(Dependency undeclaredDependency) {
-    return undeclaredDependency.getGroupId() + ":" + undeclaredDependency.getArtifactId() + ":" + undeclaredDependency.getVersion();
+    return String.format(GAV_FORMAT, undeclaredDependency.getGroupId(), undeclaredDependency.getArtifactId(), undeclaredDependency.getVersion());
   }
 
   protected String gav(MavenProject mavenProject) {
-    return mavenProject.getGroupId() + ":" + mavenProject.getArtifactId() + ":" + mavenProject.getVersion();
+    return String.format(GAV_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion());
   }
 
   protected String getSourceReference(MavenSession session) {
@@ -123,7 +129,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
       String groupId = doc.getElementsByTagName("groupId").item(0).getTextContent();
       String artifactId = doc.getElementsByTagName("artifactId").item(0).getTextContent();
       String version = doc.getElementsByTagName("version").item(0).getTextContent();
-      return String.format("%s:%s:%s", groupId, artifactId, version);
+      return String.format(GAV_FORMAT, groupId, artifactId, version);
     } catch (SAXException | ParserConfigurationException | IOException e) {
       return "";
     }

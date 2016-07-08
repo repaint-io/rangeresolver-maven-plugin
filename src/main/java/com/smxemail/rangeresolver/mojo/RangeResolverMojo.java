@@ -142,7 +142,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
     // get keys for projects in the reactor so that we can skip re-resolving them
     Set<String> reactorKeys =
-        mavenSession.getAllProjects().stream().map(project -> project.getGroupId() + ":" + project.getArtifactId()).collect(Collectors.toSet());
+        mavenSession
+            .getAllProjects()
+            .stream()
+            .map(project -> String.format(KEY_FORMAT, project.getGroupId(), project.getArtifactId()))
+            .collect(Collectors.toSet());
 
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
     if (dependencies != null) {
@@ -165,8 +169,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
               dependency.removeChild(EXCLUSIONS, NAMESPACE);
               Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
               Element exclusion = new Element(EXCLUSION, NAMESPACE);
-              exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText("*"));
-              exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText("*"));
+              exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(WILDCARD));
+              exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(WILDCARD));
               exclusions.addContent(exclusion);
               dependency.addContent(exclusions);
             }
@@ -196,6 +200,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private String keyForMavenDependency(Element dependency) {
-    return String.format("%s:%s", dependency.getChildText(GROUP_ID, NAMESPACE), dependency.getChildText(ARTIFACT_ID, NAMESPACE));
+    return String.format(KEY_FORMAT, dependency.getChildText(GROUP_ID, NAMESPACE), dependency.getChildText(ARTIFACT_ID, NAMESPACE));
   }
 }
