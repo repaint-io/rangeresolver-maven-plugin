@@ -33,9 +33,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
   boolean strictDependency = true;
 
   public void execute() throws MojoExecutionException {
-
-    File deps = resolveDepsFile(mavenSession);
     MavenProject currentProject = mavenSession.getCurrentProject();
+    File deps = resolveDepsFile();
     if (deps.exists()) {
       getLog().info("Verifying all dependencies are resolved from " + deps.getPath());
 
@@ -73,7 +72,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
         getLog().error(String.format("Undeclared dependency: %s", gav(undeclaredDependency)));
       }
 
-      getLog().info(String.format("Add the following script to the file pom.deps:\n\n%s\n", generateResolveSourceForDepenendencies(undeclaredDependencies)));
+      getLog().warn(String.format("Add the following script to the file %s:\n\n%s\n", deps.getPath(),
+                                  generateResolveSourceForDepenendencies(undeclaredDependencies)));
 
       if (strictDependency) {
         throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());
