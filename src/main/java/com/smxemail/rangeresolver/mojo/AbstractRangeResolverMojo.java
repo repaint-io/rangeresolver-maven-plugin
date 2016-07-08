@@ -58,7 +58,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   public static File resolveDepsFile(MavenSession mavenSession) {
-    File pomFile = mavenSession.getRequest().getPom();
+    File pomFile = mavenSession.getTopLevelProject().getFile();
     String pomBaseName = pomFile.getName().substring(0, pomFile.getName().lastIndexOf(".") + 1);
     return new File(pomBaseName + "deps").getAbsoluteFile();
   }
@@ -122,7 +122,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   protected String getSourceReference(MavenSession session) {
     try {
-      File pomFile = session.getRequest().getPom();
+      File pomFile = session.getTopLevelProject().getFile();
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder db = dbf.newDocumentBuilder();
       Document doc = db.parse(pomFile);
