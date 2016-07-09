@@ -176,9 +176,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             }
 
             // yank resolved comment
+            // TODO No longer adding the comment, so eventually can remove the yank
             Comment comment = yankResolvedComment(dependency).orElse(new Comment(""));
-            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
-            dependency.addContent(comment);
+//            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
+//            dependency.addContent(comment);
           }
         }
       }
