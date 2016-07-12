@@ -51,6 +51,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
 
+  public static final String PROFILES = "profiles";
+
+  public static final String PROFILE = "profile";
+
   public static final String EXCLUSIONS = "exclusions";
 
   public static final String EXCLUSION = "exclusion";
@@ -115,10 +119,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       Element projectElem = pomDocument.getRootElement();
       rewritePomDependencies(resolvedItems, projectElem);
 
-      Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
-      if (dependencyManagement != null) {
-        rewritePomDependencies(resolvedItems, dependencyManagement);
+      Element profiles = projectElem.getChild(PROFILES, NAMESPACE);
+      if (profiles != null) {
+        List<Element> profileList = profiles.getChildren(PROFILE, NAMESPACE);
+        for (Element profile : profileList) {
+          rewriteDependencyManagement(resolvedItems, profile);
+          rewritePomDependencies(resolvedItems, profile);
+        }
       }
+
+      rewriteDependencyManagement(resolvedItems, projectElem);
 
       File newPomFile = new File(pomFile.getAbsolutePath());
       File originalPomFile = new File(pomFile.getAbsolutePath() + ".orig");
@@ -135,6 +145,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
     } catch (IOException | JDOMException e) {
       throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
+  private void rewriteDependencyManagement(Map<String, Resolved> resolvedItems, Element projectElem) {
+    Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
+    if (dependencyManagement != null) {
+      rewritePomDependencies(resolvedItems, dependencyManagement);
     }
   }
 
