@@ -23,9 +23,7 @@ import java.io.IOException;
 
 import static com.smxemail.rangeresolver.mojo.AbstractRangeResolverMojo.resolveDepsFile;
 
-/**
- * @deprecated use the {@link ResolvePropertiesMojo} in future.
- */
+/** @deprecated use the {@link ResolvePropertiesMojo} in future. */
 @Component(role = AbstractMavenLifecycleParticipant.class, hint = "RangeResolverLifecycleParticipant")
 @Deprecated
 public class RangeResolverLifecycleParticipant extends AbstractMavenLifecycleParticipant {
