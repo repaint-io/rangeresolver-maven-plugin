@@ -52,6 +52,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
 
+  public static final String PARENT = "parent";
+
   public static final String PROFILES = "profiles";
 
   public static final String PROFILE = "profile";
@@ -125,6 +127,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       Element projectElem = pomDocument.getRootElement();
       rewritePomDependencies(resolvedItems, projectElem);
+
+      Element parent = projectElem.getChild(PARENT, NAMESPACE);
+      if (parent != null) {
+        Resolved resolved = resolvedItems.get(keyForMavenDependency(parent));
+        Element version = parent.getChild(VERSION, NAMESPACE);
+        if (resolved != null && version != null) {
+          version.setText(String.format("%s", resolved.version()));
+        }
+      }
 
       Element profiles = projectElem.getChild(PROFILES, NAMESPACE);
       if (profiles != null) {
