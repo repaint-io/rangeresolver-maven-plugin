@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -69,7 +70,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
       if (deps.exists()) {
-        getLog().info("Updating resolving ranges...");
+        getLog().info("Updating resolved ranges...");
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
@@ -78,7 +79,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
           ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource);
-          RangeResolver updated = rangeResolver.withResolved(resolvedThings.resolved());
+
+          Set<String> reactorKeys = mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
+          Predicate<Resolved> exludeReactorProjects = r -> !reactorKeys.contains(r.key());
+
+          List<Resolved> resolvedExcludingReactorProjects = resolvedThings.resolved().stream().filter(exludeReactorProjects).collect(Collectors.toList());
+
+          RangeResolver updated = rangeResolver.withResolved(resolvedExcludingReactorProjects);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
 
@@ -195,8 +202,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             // yank resolved comment
             // TODO No longer adding the comment, so eventually can remove the yank
             Comment comment = yankResolvedComment(dependency).orElse(new Comment(""));
-//            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
-//            dependency.addContent(comment);
+            //            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
+            //            dependency.addContent(comment);
           }
         }
       }

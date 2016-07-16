@@ -120,6 +120,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     return String.format(GAV_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion());
   }
 
+  protected String key(MavenProject mavenProject) {
+    return String.format(KEY_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId());
+  }
+
   protected String getSourceReference(MavenSession session) {
     try {
       File pomFile = session.getTopLevelProject().getFile();

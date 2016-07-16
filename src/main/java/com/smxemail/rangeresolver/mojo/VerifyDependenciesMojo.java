@@ -72,8 +72,10 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
         getLog().error(String.format("Undeclared dependency: %s", gav(undeclaredDependency)));
       }
 
-      getLog().warn(String.format("Add the following script to the file %s:\n\n%s\n", deps.getPath(),
-                                  generateResolveSourceForDepenendencies(undeclaredDependencies)));
+      getLog()
+          .warn(
+              String.format(
+                  "Add the following script to the file %s:\n\n%s\n", deps.getPath(), generateResolveSourceForDepenendencies(undeclaredDependencies)));
 
       if (strictDependency) {
         throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());

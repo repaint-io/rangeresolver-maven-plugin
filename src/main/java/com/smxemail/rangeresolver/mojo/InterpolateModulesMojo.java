@@ -41,7 +41,7 @@ public class InterpolateModulesMojo extends AbstractRangeResolverMojo {
   /**
    * Interpolate an IntelliJ .iml module file with property replacements.
    *
-   * @param root       project root, for generating relative paths
+   * @param root project root, for generating relative paths
    * @param moduleFile An IntelliJ .iml file
    */
   private void interpolateIdeaModuleFile(String root, File moduleFile) {
