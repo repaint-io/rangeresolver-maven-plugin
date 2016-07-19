@@ -180,7 +180,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       String relativePomFileName = newPomFile.getPath().substring(project.getBasedir().getPath().length() + 1);
       getLog().info("Rewriting dependencies in " + relativePomFileName);
 
-      Format format = Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM);
+      Format format = Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM).setExpandEmptyElements(false);
+
       new XMLOutputter(format).output(pomDocument, new FileWriter(newPomFile));
 
     } catch (IOException | JDOMException e) {
