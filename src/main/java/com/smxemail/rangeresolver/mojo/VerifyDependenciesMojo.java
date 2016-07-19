@@ -3,6 +3,7 @@ package com.smxemail.rangeresolver.mojo;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
+import okio.Okio;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
@@ -36,7 +37,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     MavenProject currentProject = mavenSession.getCurrentProject();
     File deps = resolveDepsFile();
     if (deps.exists()) {
-      getLog().info("Verifying all dependencies are resolved from " + deps.getPath());
+
+      verifySha1(deps);
 
       try {
         String resolutionSource = getSourceReference(mavenSession);
@@ -52,6 +54,17 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       }
     } else {
       processVerification(deps, currentProject, getDependencies(currentProject, dep -> true));
+    }
+  }
+
+  private void verifySha1(File deps) throws MojoExecutionException {
+    try {
+      String sha1 = Okio.buffer(Okio.source(deps)).readByteString().sha1().hex();
+      if (!sha1.equals(project.getProperties().get(RangeResolverMojo.DEPENDENCIES_SHA1))) {
+        getLog().warn("pom.deps sha1 is out of date, you may wish to rerun the rangeresolve:resolve-deps goal!");
+      }
+    } catch (IOException e) {
+      throw new MojoExecutionException(e.getMessage());
     }
   }
 
