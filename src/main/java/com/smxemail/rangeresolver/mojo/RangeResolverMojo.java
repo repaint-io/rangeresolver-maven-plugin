@@ -5,6 +5,7 @@ import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
+import okio.Okio;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -56,6 +57,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String PROFILES = "profiles";
 
+  public static final String PROPERTIES = "properties";
+
+  public static final String DEPENDENCIES_SHA1 = "pom.deps.sha1";
+
   public static final String PROFILE = "profile";
 
   public static final String EXCLUSIONS = "exclusions";
@@ -91,6 +96,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           writeRangeResolveSource(updated, new FileWriter(deps));
 
+          String sha1 = Okio.buffer(Okio.source(deps)).readByteString().sha1().hex();
+
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
           Set<File> pomFiles =
@@ -99,7 +106,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   .collect(Collectors.toSet());
 
           for (File file : pomFiles) {
-            rewritePom(updated, file);
+            rewritePom(updated, sha1, file);
           }
 
           Set<File> allFiles = new HashSet<>(pomFiles);
@@ -116,7 +123,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewritePom(RangeResolver updated, File pomFile) {
+  private void rewritePom(RangeResolver updated, String sha1, File pomFile) {
 
     try {
       Document pomDocument = new SAXBuilder().build(pomFile);
@@ -127,6 +134,21 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       Element projectElem = pomDocument.getRootElement();
       rewritePomDependencies(resolvedItems, projectElem);
+
+      // Update sha1 of deps in pom
+      Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
+      if (properties != null) {
+        Element sha1Element = properties.getChild(DEPENDENCIES_SHA1);
+        if (sha1Element != null) {
+          sha1Element.setText(sha1);
+        } else {
+          properties.addContent(new Element(DEPENDENCIES_SHA1, NAMESPACE).setText(sha1));
+        }
+      } else {
+        properties = new Element(PROPERTIES, NAMESPACE);
+        properties.addContent(new Element(DEPENDENCIES_SHA1, NAMESPACE).setText(sha1));
+        projectElem.addContent(properties);
+      }
 
       Element parent = projectElem.getChild(PARENT, NAMESPACE);
       if (parent != null) {
