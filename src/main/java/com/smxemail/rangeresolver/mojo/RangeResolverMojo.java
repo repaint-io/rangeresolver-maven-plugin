@@ -138,7 +138,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       // Update sha1 of deps in pom
       Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
       if (properties != null) {
-        Element sha1Element = properties.getChild(DEPENDENCIES_SHA1);
+        Element sha1Element = properties.getChild(DEPENDENCIES_SHA1, NAMESPACE);
         if (sha1Element != null) {
           sha1Element.setText(sha1);
         } else {
