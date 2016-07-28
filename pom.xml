@@ -4,14 +4,16 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.0.40-SNAPSHOT</version>
+  <version>1.0.40</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
   <url>http://maven.apache.org</url>
+
   <prerequisites>
-    <maven>3.3.9></maven>
+    <maven>3.3.9&gt;</maven>
   </prerequisites>
+
   <properties>
     <dependency.check.fastfail>false</dependency.check.fastfail>
     <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
