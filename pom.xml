@@ -4,14 +4,14 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.0.41-SNAPSHOT</version>
+  <version>1.0.42-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
   <url>http://maven.apache.org</url>
 
   <prerequisites>
-    <maven>3.3.9&gt;</maven>
+    <maven>3.3.9</maven>
   </prerequisites>
 
   <properties>
