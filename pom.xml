@@ -4,11 +4,15 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.0.40-SNAPSHOT</version>
+  <version>1.0.41-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
   <url>http://maven.apache.org</url>
+
+  <prerequisites>
+    <maven>3.3.9&gt;</maven>
+  </prerequisites>
 
   <properties>
     <dependency.check.fastfail>false</dependency.check.fastfail>
@@ -26,12 +30,12 @@
     <dependency>
       <groupId>org.codehaus.plexus</groupId>
       <artifactId>plexus-component-annotations</artifactId>
-      <version>1.6</version>
+      <version>1.7</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.sisu</groupId>
       <artifactId>org.eclipse.sisu.plexus</artifactId>
-      <version>0.3.2</version>
+      <version>0.3.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -46,23 +50,23 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
-      <version>3.0</version>
+      <version>3.3.9</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-api</artifactId>
-      <version>1.9.4</version>
+      <version>1.9.5</version>
       </dependency>
     <dependency>
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-manager-plexus</artifactId>
-      <version>1.9.4</version>
+      <version>1.9.5</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-providers-standard</artifactId>
-      <version>1.9.4</version>
+      <version>1.9.5</version>
       <type>pom</type>
     </dependency>
     <dependency>
@@ -73,7 +77,7 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>[1.0.17,2.0.0)</version>
+      <version>[1.0.20]</version>
     </dependency>
     <dependency>
       <groupId>org.jdom</groupId>
