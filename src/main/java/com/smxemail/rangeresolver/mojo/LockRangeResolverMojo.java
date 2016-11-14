@@ -37,7 +37,7 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
           List<Resolved> allResolved = new ArrayList<>();
           allResolved.addAll(rangeResolver.locked());
           allResolved.addAll(rangeResolver.resolved());
-          RangeResolver updated = rangeResolver.withResolved().withLocked(allResolved);
+          RangeResolver updated = rangeResolver.withResolved().withLocked(RepositoryResolver.sortResolvedThings(allResolved));
 
           updated = RepositoryResolver.unlockDependencies(updated, unlocked);
 
