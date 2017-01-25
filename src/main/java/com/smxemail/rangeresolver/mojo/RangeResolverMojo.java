@@ -43,6 +43,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final Namespace NAMESPACE = Namespace.getNamespace("http://maven.apache.org/POM/4.0.0");
 
+  public static final String BUILD = "build";
+
+  public static final String PLUGINS = "plugins";
+
+  public static final String PLUGIN_MANAGEMENT = "pluginManagement";
+
   public static final String DEPENDENCIES = "dependencies";
 
   public static final String GROUP_ID = "groupId";
@@ -102,8 +108,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           Set<File> pomFiles =
               Files.find(baseDir.toPath(), 10, (path, attr) -> path.toFile().getName().equals("pom.xml") && attr.isRegularFile())
-                  .map(Path::toFile)
-                  .collect(Collectors.toSet());
+                   .map(Path::toFile)
+                   .collect(Collectors.toSet());
 
           for (File file : pomFiles) {
             rewritePom(updated, sha1, file);
@@ -126,6 +132,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private void rewritePom(RangeResolver updated, String sha1, File pomFile) {
 
     try {
+      Set<String> reactorKeys = resolveReactorKeys();
+
       Document pomDocument = new SAXBuilder().build(pomFile);
 
       Map<String, Resolved> resolvedItems = new HashMap<>();
@@ -133,7 +141,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       resolvedItems.putAll(updated.locked().stream().collect(Resolved.collectByKey));
 
       Element projectElem = pomDocument.getRootElement();
-      rewritePomDependencies(resolvedItems, projectElem);
+      rewritePomBuild(resolvedItems, reactorKeys, projectElem);
+      rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
 
       // Update sha1 of deps in pom
       Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
@@ -163,12 +172,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       if (profiles != null) {
         List<Element> profileList = profiles.getChildren(PROFILE, NAMESPACE);
         for (Element profile : profileList) {
-          rewriteDependencyManagement(resolvedItems, profile);
-          rewritePomDependencies(resolvedItems, profile);
+          rewritePomBuild(resolvedItems, reactorKeys, profile);
+          rewriteDependencyManagement(resolvedItems, reactorKeys, profile);
+          rewritePomDependencies(resolvedItems, reactorKeys, profile);
         }
       }
 
-      rewriteDependencyManagement(resolvedItems, projectElem);
+      rewriteDependencyManagement(resolvedItems, reactorKeys, projectElem);
 
       File newPomFile = new File(pomFile.getAbsolutePath());
       File originalPomFile = new File(pomFile.getAbsolutePath() + ".orig");
@@ -189,22 +199,43 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewriteDependencyManagement(Map<String, Resolved> resolvedItems, Element projectElem) {
-    Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
-    if (dependencyManagement != null) {
-      rewritePomDependencies(resolvedItems, dependencyManagement);
+  private void rewritePomBuild(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+    Element build = projectElem.getChild(BUILD, NAMESPACE);
+    if (build != null) {
+      rewritePomPlugins(resolvedItems,reactorKeys, build);
+      Element pluginManagement = projectElem.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
+      if (pluginManagement != null) {
+        rewritePomPlugins(resolvedItems, reactorKeys, pluginManagement);
+      }
     }
   }
 
-  private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Element projectElem) {
+  private void rewritePomPlugins(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element build) {
+    Element plugins = build.getChild(PLUGINS, NAMESPACE);
+    if (plugins != null) {
+      for (Element plugin : plugins.getChildren()) {
+        String pluginKey = keyForMavenDependency(plugin);
+        if (!reactorKeys.contains(pluginKey) && resolvedItems.containsKey(pluginKey)) {
+          Resolved resolved = resolvedItems.get(pluginKey);
 
-    // get keys for projects in the reactor so that we can skip re-resolving them
-    Set<String> reactorKeys =
-        mavenSession
-            .getAllProjects()
-            .stream()
-            .map(project -> String.format(KEY_FORMAT, project.getGroupId(), project.getArtifactId()))
-            .collect(Collectors.toSet());
+          // Replace version
+          Element version = plugin.getChild(VERSION, NAMESPACE);
+          if (version != null) {
+            version.setText(String.format("%s", resolved.version()));
+          }
+        }
+      }
+    }
+  }
+
+  private void rewriteDependencyManagement(Map<String, Resolved> resolvedItems, Set<String> reactorKeys,Element projectElem) {
+    Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
+    if (dependencyManagement != null) {
+      rewritePomDependencies(resolvedItems, reactorKeys, dependencyManagement);
+    }
+  }
+
+  private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
 
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
     if (dependencies != null) {
@@ -242,6 +273,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         }
       }
     }
+  }
+
+  private Set<String> resolveReactorKeys() {
+    // get keys for projects in the reactor so that we can skip re-resolving them
+    return mavenSession
+               .getAllProjects()
+               .stream()
+               .map(project -> String.format(KEY_FORMAT, project.getGroupId(), project.getArtifactId()))
+               .collect(Collectors.toSet());
   }
 
   private Optional<Comment> yankResolvedComment(Element element) {
