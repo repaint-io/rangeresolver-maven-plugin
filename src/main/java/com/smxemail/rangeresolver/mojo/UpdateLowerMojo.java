@@ -19,7 +19,11 @@ import java.util.stream.Collectors;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 
-@Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
+@Mojo(
+  name = "update-lower-bounds",
+  defaultPhase = LifecyclePhase.INITIALIZE,
+  inheritByDefault = false
+)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
   public void execute() throws MojoExecutionException {
@@ -31,14 +35,24 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project);
-          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
-          RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
+          RangeResolver rangeResolver =
+              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+          RepositoryResolver repositoryResolver =
+              RepositoryResolver.createRepositoryResolver(
+                  getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
-          ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
+          ResolutionResult resolutionResult =
+              repositoryResolver.resolveRanges(rangeResolver, deps.getPath());
 
-          Map<String, Resolved> resolvedThings = resolutionResult.resolved().stream().collect(Resolved.collectByKey);
+          Map<String, Resolved> resolvedThings =
+              resolutionResult.resolved().stream().collect(Resolved.collectByKey);
 
-          List<Resolve> updatedLowerBounds = rangeResolver.resolves().stream().map(res -> resolveLowerBound(resolvedThings, res)).collect(Collectors.toList());
+          List<Resolve> updatedLowerBounds =
+              rangeResolver
+                  .resolves()
+                  .stream()
+                  .map(res -> resolveLowerBound(resolvedThings, res))
+                  .collect(Collectors.toList());
 
           RangeResolver updated = rangeResolver.withResolves(updatedLowerBounds);
           writeRangeResolveSource(updated, new FileWriter(deps));

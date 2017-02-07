@@ -63,16 +63,20 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     return new File(pomBaseName + "deps").getAbsoluteFile();
   }
 
-  protected void commitChangesToDependencies(String message, File file) throws MojoExecutionException {
+  protected void commitChangesToDependencies(String message, File file)
+      throws MojoExecutionException {
     commitChangesToDependencies(message, file.getParentFile(), Collections.singleton(file));
   }
 
-  protected void commitChangesToDependencies(String message, File baseDir, Set<File> files) throws MojoExecutionException {
+  protected void commitChangesToDependencies(String message, File baseDir, Set<File> files)
+      throws MojoExecutionException {
     if (!projectIsReleasing()) {
       getLog().info("Project is not being released, skipping commit: " + message);
     } else {
       try {
-        String connectionUrl = MoreObjects.firstNonNull(project.getScm().getConnection(), project.getScm().getDeveloperConnection());
+        String connectionUrl =
+            MoreObjects.firstNonNull(
+                project.getScm().getConnection(), project.getScm().getDeveloperConnection());
         ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
         ScmProviderRepository providerRepo = repository.getProviderRepository();
         providerRepo.setPushChanges(pushChanges);
@@ -84,11 +88,14 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
           getLog().info(String.format("Committing dependency changes to %s", connectionUrl));
           AddScmResult addResult = scmManager.add(repository, scmFileSet);
           if (!addResult.isSuccess()) {
-            throw new MojoExecutionException(String.format("Unable to add dependency changes to repository %s", connectionUrl));
+            throw new MojoExecutionException(
+                String.format("Unable to add dependency changes to repository %s", connectionUrl));
           } else {
             CheckInScmResult checkinResult = scmManager.checkIn(repository, scmFileSet, message);
             if (!checkinResult.isSuccess()) {
-              throw new MojoExecutionException(String.format("Unable to commit dependency changes to repository %s", connectionUrl));
+              throw new MojoExecutionException(
+                  String.format(
+                      "Unable to commit dependency changes to repository %s", connectionUrl));
             }
           }
         } else {
@@ -107,17 +114,30 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   private boolean containsDepChange(StatusScmResult statusScmResult, Set<File> files) {
 
     Set<String> fileNames = files.stream().map(f -> f.getName()).collect(Collectors.toSet());
-    Set<String> scmPaths = statusScmResult.getChangedFiles().stream().map(f -> f.getPath()).collect(Collectors.toSet());
+    Set<String> scmPaths =
+        statusScmResult
+            .getChangedFiles()
+            .stream()
+            .map(f -> f.getPath())
+            .collect(Collectors.toSet());
 
     return !Collections.disjoint(fileNames, scmPaths);
   }
 
   protected String gav(Dependency undeclaredDependency) {
-    return String.format(GAV_FORMAT, undeclaredDependency.getGroupId(), undeclaredDependency.getArtifactId(), undeclaredDependency.getVersion());
+    return String.format(
+        GAV_FORMAT,
+        undeclaredDependency.getGroupId(),
+        undeclaredDependency.getArtifactId(),
+        undeclaredDependency.getVersion());
   }
 
   protected String gav(MavenProject mavenProject) {
-    return String.format(GAV_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion());
+    return String.format(
+        GAV_FORMAT,
+        mavenProject.getGroupId(),
+        mavenProject.getArtifactId(),
+        mavenProject.getVersion());
   }
 
   protected String key(MavenProject mavenProject) {

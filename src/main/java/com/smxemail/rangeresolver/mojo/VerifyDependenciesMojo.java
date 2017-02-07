@@ -43,9 +43,11 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+        RangeResolver rangeResolver =
+            RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
         Predicate<Dependency> isUndeclaredDependency = declaredDependency(rangeResolver).negate();
-        Set<Dependency> undeclaredDependencies = getDependencies(currentProject, isUndeclaredDependency);
+        Set<Dependency> undeclaredDependencies =
+            getDependencies(currentProject, isUndeclaredDependency);
 
         processVerification(deps, currentProject, undeclaredDependencies);
 
@@ -61,24 +63,32 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     try {
       String sha1 = Okio.buffer(Okio.source(deps)).readByteString().sha1().hex();
       if (!sha1.equals(project.getProperties().get(RangeResolverMojo.DEPENDENCIES_SHA1))) {
-        getLog().warn("pom.deps sha1 is out of date, you may wish to rerun the rangeresolve:resolve-deps goal!");
+        getLog()
+            .warn(
+                "pom.deps sha1 is out of date, you may wish to rerun the rangeresolve:resolve-deps goal!");
       }
     } catch (IOException e) {
       throw new MojoExecutionException(e.getMessage());
     }
   }
 
-  private Set<Dependency> getDependencies(MavenProject mavenProject, Predicate<Dependency> isUndeclaredDependency) {
-    Set<Dependency> undeclaredDependencies = new TreeSet<>(Comparator.comparing(this::keyForDependency));
+  private Set<Dependency> getDependencies(
+      MavenProject mavenProject, Predicate<Dependency> isUndeclaredDependency) {
+    Set<Dependency> undeclaredDependencies =
+        new TreeSet<>(Comparator.comparing(this::keyForDependency));
     DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
     if (dependencyManagement != null) {
-      undeclaredDependencies.addAll(filterDependencies(isUndeclaredDependency, dependencyManagement.getDependencies()));
+      undeclaredDependencies.addAll(
+          filterDependencies(isUndeclaredDependency, dependencyManagement.getDependencies()));
     }
-    undeclaredDependencies.addAll(filterDependencies(isUndeclaredDependency, mavenProject.getDependencies()));
+    undeclaredDependencies.addAll(
+        filterDependencies(isUndeclaredDependency, mavenProject.getDependencies()));
     return undeclaredDependencies;
   }
 
-  private void processVerification(File deps, MavenProject mavenProject, Set<Dependency> undeclaredDependencies) throws MojoExecutionException {
+  private void processVerification(
+      File deps, MavenProject mavenProject, Set<Dependency> undeclaredDependencies)
+      throws MojoExecutionException {
     if (!undeclaredDependencies.isEmpty()) {
       getLog().error(String.format("Undeclared dependencies found in %s", gav(mavenProject)));
       for (Dependency undeclaredDependency : undeclaredDependencies) {
@@ -88,7 +98,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       getLog()
           .warn(
               String.format(
-                  "Add the following script to the file %s:\n\n%s\n", deps.getPath(), generateResolveSourceForDepenendencies(undeclaredDependencies)));
+                  "Add the following script to the file %s:\n\n%s\n",
+                  deps.getPath(), generateResolveSourceForDepenendencies(undeclaredDependencies)));
 
       if (strictDependency) {
         throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());
@@ -96,12 +107,16 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private Set<Dependency> filterDependencies(Predicate<Dependency> isDeclaredDependency, List<Dependency> dependencies) {
+  private Set<Dependency> filterDependencies(
+      Predicate<Dependency> isDeclaredDependency, List<Dependency> dependencies) {
     return dependencies.stream().filter(isDeclaredDependency).collect(Collectors.toSet());
   }
 
   private Predicate<Dependency> declaredDependency(RangeResolver rangeResolver) {
-    Set<String> keys = Stream.concat(rangeResolver.resolved().stream(), rangeResolver.locked().stream()).map(Resolved::key).collect(Collectors.toSet());
+    Set<String> keys =
+        Stream.concat(rangeResolver.resolved().stream(), rangeResolver.locked().stream())
+            .map(Resolved::key)
+            .collect(Collectors.toSet());
     return dependency -> keys.contains(keyForDependency(dependency));
   }
 
@@ -112,7 +127,10 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
   private String generateResolveSourceForDepenendencies(Set<Dependency> dependencies) {
     StringBuilder sb = new StringBuilder();
     for (Dependency dependency : dependencies) {
-      sb.append(String.format("     resolve highest %s:%s;\n", keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
+      sb.append(
+          String.format(
+              "     resolve highest %s:%s;\n",
+              keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
     }
     return sb.toString();
   }
