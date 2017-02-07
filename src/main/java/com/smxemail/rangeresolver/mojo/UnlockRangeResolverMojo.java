@@ -25,9 +25,11 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
         getLog().info("Unlocking resolved ranges...");
         try {
           String resolutionSource = gav(project);
-          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+          RangeResolver rangeResolver =
+              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
-          RangeResolver updated = unlockDependencies(rangeResolver, ImmutableList.of(Pattern.compile(".*")));
+          RangeResolver updated =
+              unlockDependencies(rangeResolver, ImmutableList.of(Pattern.compile(".*")));
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies("Unlocked dependency ranges.", deps);
