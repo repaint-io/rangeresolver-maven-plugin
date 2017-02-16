@@ -32,6 +32,7 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
           String resolutionSource = gav(project);
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+
           List<Pattern> unlocked =
               rangeResolver
                   .allows()
@@ -43,10 +44,17 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
           List<Resolved> allResolved = new ArrayList<>();
           allResolved.addAll(rangeResolver.locked());
           allResolved.addAll(rangeResolver.resolved());
+
+          List<Resolved> allResolvedCurrentRelease =
+              allResolved
+                  .stream()
+                  .map(resolved -> resolved.withResolvedFrom(resolutionSource))
+                  .collect(Collectors.toList());
+
           RangeResolver updated =
               rangeResolver
                   .withResolved()
-                  .withLocked(RepositoryResolver.sortResolvedThings(allResolved));
+                  .withLocked(RepositoryResolver.sortResolvedThings(allResolvedCurrentRelease));
 
           updated = RepositoryResolver.unlockDependencies(updated, unlocked);
 
