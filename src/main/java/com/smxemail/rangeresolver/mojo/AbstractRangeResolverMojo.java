@@ -1,6 +1,9 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.google.common.base.MoreObjects;
+import com.smxemail.rangeresolver.api.Allow;
+import com.smxemail.rangeresolver.api.Allowable;
+import com.smxemail.rangeresolver.api.RangeResolver;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
@@ -27,7 +30,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public abstract class AbstractRangeResolverMojo extends AbstractMojo {
@@ -66,6 +71,15 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   protected void commitChangesToDependencies(String message, File file)
       throws MojoExecutionException {
     commitChangesToDependencies(message, file.getParentFile(), Collections.singleton(file));
+  }
+
+  protected List<Pattern> unlockPatterns(RangeResolver rangeResolver) {
+    return rangeResolver
+        .allows()
+        .stream()
+        .filter(allow -> allow.allowable() == Allowable.UNLOCKED)
+        .map(Allow::pattern)
+        .collect(Collectors.toList());
   }
 
   protected void commitChangesToDependencies(String message, File baseDir, Set<File> files)

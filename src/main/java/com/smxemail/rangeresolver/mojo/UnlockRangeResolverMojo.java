@@ -1,6 +1,5 @@
 package com.smxemail.rangeresolver.mojo;
 
-import com.google.common.collect.ImmutableList;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -10,7 +9,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.regex.Pattern;
 
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.unlockDependencies;
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
@@ -28,8 +26,7 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
-          RangeResolver updated =
-              unlockDependencies(rangeResolver, ImmutableList.of(Pattern.compile(".*")));
+          RangeResolver updated = unlockDependencies(rangeResolver, unlockPatterns(rangeResolver));
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies("Unlocked dependency ranges.", deps);
