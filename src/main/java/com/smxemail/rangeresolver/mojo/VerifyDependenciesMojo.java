@@ -2,8 +2,6 @@ package com.smxemail.rangeresolver.mojo;
 
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
-import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
-import okio.Okio;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
@@ -23,8 +21,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static java.util.Objects.requireNonNull;
 
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.INITIALIZE)
@@ -38,18 +36,14 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     File deps = resolveDepsFile();
     if (deps.exists()) {
 
-      verifySha1(deps);
-
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver =
-            RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
-        Predicate<Dependency> isUndeclaredDependency = declaredDependency(rangeResolver).negate();
-        Set<Dependency> undeclaredDependencies =
-            getDependencies(currentProject, isUndeclaredDependency);
+        RangeResolver rangeResolver = parseRangeResolver(resolutionSource, new FileReader(deps));
+        Predicate<Dependency> isUndeclared = declaredDependency(rangeResolver).negate();
+        Set<Dependency> undeclared = getDependencies(currentProject, isUndeclared);
 
-        processVerification(deps, currentProject, undeclaredDependencies);
+        processVerification(deps, currentProject, undeclared);
 
       } catch (IOException e) {
         throw new MojoExecutionException(e.getMessage(), e);
@@ -59,47 +53,30 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void verifySha1(File deps) throws MojoExecutionException {
-    try {
-      String sha1 = Okio.buffer(Okio.source(deps)).readByteString().sha1().hex();
-      if (!sha1.equals(project.getProperties().get(RangeResolverMojo.DEPENDENCIES_SHA1))) {
-        getLog()
-            .warn(
-                "pom.deps sha1 is out of date, you may wish to rerun the rangeresolve:resolve-deps goal!");
-      }
-    } catch (IOException e) {
-      throw new MojoExecutionException(e.getMessage());
-    }
-  }
-
   private Set<Dependency> getDependencies(
-      MavenProject mavenProject, Predicate<Dependency> isUndeclaredDependency) {
-    Set<Dependency> undeclaredDependencies =
-        new TreeSet<>(Comparator.comparing(this::keyForDependency));
+      MavenProject mavenProject, Predicate<Dependency> isUndeclared) {
+    Set<Dependency> undeclared = new TreeSet<>(Comparator.comparing(this::keyForDependency));
     DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
     if (dependencyManagement != null) {
-      undeclaredDependencies.addAll(
-          filterDependencies(isUndeclaredDependency, dependencyManagement.getDependencies()));
+      undeclared.addAll(filterDependencies(isUndeclared, dependencyManagement.getDependencies()));
     }
-    undeclaredDependencies.addAll(
-        filterDependencies(isUndeclaredDependency, mavenProject.getDependencies()));
-    return undeclaredDependencies;
+    undeclared.addAll(filterDependencies(isUndeclared, mavenProject.getDependencies()));
+    return undeclared;
   }
 
-  private void processVerification(
-      File deps, MavenProject mavenProject, Set<Dependency> undeclaredDependencies)
+  private void processVerification(File deps, MavenProject mavenProject, Set<Dependency> undeclared)
       throws MojoExecutionException {
-    if (!undeclaredDependencies.isEmpty()) {
+    if (!undeclared.isEmpty()) {
       getLog().error(String.format("Undeclared dependencies found in %s", gav(mavenProject)));
-      for (Dependency undeclaredDependency : undeclaredDependencies) {
-        getLog().error(String.format("Undeclared dependency: %s", gav(undeclaredDependency)));
+      for (Dependency dependency : undeclared) {
+        getLog().error(String.format("Undeclared dependency: %s", gav(dependency)));
       }
 
       getLog()
           .warn(
               String.format(
                   "Add the following script to the file %s:\n\n%s\n",
-                  deps.getPath(), generateResolveSourceForDepenendencies(undeclaredDependencies)));
+                  deps.getPath(), generateSource(undeclared)));
 
       if (strictDependency) {
         throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());
@@ -114,7 +91,9 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
 
   private Predicate<Dependency> declaredDependency(RangeResolver rangeResolver) {
     Set<String> keys =
-        Stream.concat(rangeResolver.resolved().stream(), rangeResolver.locked().stream())
+        rangeResolver
+            .resolved()
+            .appendAll(rangeResolver.locked())
             .map(Resolved::key)
             .collect(Collectors.toSet());
     return dependency -> keys.contains(keyForDependency(dependency));
@@ -124,7 +103,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     return String.format("%s:%s", dependency.getGroupId(), dependency.getArtifactId());
   }
 
-  private String generateResolveSourceForDepenendencies(Set<Dependency> dependencies) {
+  private String generateSource(Set<Dependency> dependencies) {
     StringBuilder sb = new StringBuilder();
     for (Dependency dependency : dependencies) {
       sb.append(

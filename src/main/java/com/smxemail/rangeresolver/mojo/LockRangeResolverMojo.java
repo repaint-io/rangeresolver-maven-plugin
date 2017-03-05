@@ -4,6 +4,7 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
+import javaslang.collection.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -11,11 +12,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+import static javaslang.API.List;
 
 @Mojo(name = "lock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
@@ -26,26 +25,19 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
       if (deps.exists()) {
         try {
           getLog().info("Locking resolved ranges...");
-          String resolutionSource = gav(project);
+          String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
-          List<Resolved> allResolved = new ArrayList<>();
-          allResolved.addAll(rangeResolver.locked());
-          allResolved.addAll(rangeResolver.resolved());
-
           List<Resolved> allResolvedCurrentRelease =
-              allResolved
-                  .stream()
-                  .map(resolved -> resolved.withResolvedFrom(resolutionSource))
-                  .collect(Collectors.toList());
+              rangeResolver.resolved().map(resolved -> resolved.withResolvedFrom(resolutionSource));
+
+          List<Resolved> allResolved = rangeResolver.locked().appendAll(allResolvedCurrentRelease);
 
           RangeResolver updated =
               rangeResolver
-                  .withResolved()
-                  .withLocked(RepositoryResolver.sortResolvedThings(allResolvedCurrentRelease));
-
-          updated = RepositoryResolver.unlockDependencies(updated, unlockPatterns(rangeResolver));
+                  .withResolved(List())
+                  .withLocked(RepositoryResolver.sortResolvedThings(allResolved));
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies("Locked dependency ranges.", deps);
