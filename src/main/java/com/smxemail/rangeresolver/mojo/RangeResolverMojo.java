@@ -5,12 +5,10 @@ import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
-import okio.Okio;
+import javaslang.collection.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-import org.jdom2.Comment;
-import org.jdom2.Content;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -28,9 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -89,7 +85,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
-          String resolutionSource = gav(project);
+          String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
           RepositoryResolver repositoryResolver =
@@ -97,18 +93,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
 
           ResolutionResult resolvedThings =
-              repositoryResolver.resolveRanges(rangeResolver, resolutionSource);
+              repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
           Set<String> reactorKeys =
               mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
-          Predicate<Resolved> exludeReactorProjects = r -> !reactorKeys.contains(r.key());
+          Predicate<Resolved> excludeReactorProjects = r -> !reactorKeys.contains(r.key());
 
           List<Resolved> resolvedExcludingReactorProjects =
-              resolvedThings
-                  .resolved()
-                  .stream()
-                  .filter(exludeReactorProjects)
-                  .collect(Collectors.toList());
+              resolvedThings.resolved().filter(excludeReactorProjects);
 
           RangeResolver updated =
               rangeResolver
@@ -116,8 +108,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   .withLocked(resolvedThings.locked());
 
           writeRangeResolveSource(updated, new FileWriter(deps));
-
-          String sha1 = Okio.buffer(Okio.source(deps)).readByteString().sha1().hex();
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
@@ -131,7 +121,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   .collect(Collectors.toSet());
 
           for (File file : pomFiles) {
-            rewritePom(updated, sha1, file);
+            rewritePom(updated, file);
           }
 
           Set<File> allFiles = new HashSet<>(pomFiles);
@@ -148,7 +138,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewritePom(RangeResolver updated, String sha1, File pomFile) {
+  private void rewritePom(RangeResolver updated, File pomFile) {
 
     try {
       Set<String> reactorKeys = resolveReactorKeys();
@@ -156,26 +146,20 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       Document pomDocument = new SAXBuilder().build(pomFile);
 
       Map<String, Resolved> resolvedItems = new HashMap<>();
-      resolvedItems.putAll(updated.resolved().stream().collect(Resolved.collectByKey));
-      resolvedItems.putAll(updated.locked().stream().collect(Resolved.collectByKey));
+      resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
+      resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
 
       Element projectElem = pomDocument.getRootElement();
       rewritePomBuild(resolvedItems, reactorKeys, projectElem);
       rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
 
-      // Update sha1 of deps in pom
+      // Remove the pom.deps.sha1 property
       Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
       if (properties != null) {
         Element sha1Element = properties.getChild(DEPENDENCIES_SHA1, NAMESPACE);
         if (sha1Element != null) {
-          sha1Element.setText(sha1);
-        } else {
-          properties.addContent(new Element(DEPENDENCIES_SHA1, NAMESPACE).setText(sha1));
+          sha1Element.detach();
         }
-      } else {
-        properties = new Element(PROPERTIES, NAMESPACE);
-        properties.addContent(new Element(DEPENDENCIES_SHA1, NAMESPACE).setText(sha1));
-        projectElem.addContent(properties);
       }
 
       Element parent = projectElem.getChild(PARENT, NAMESPACE);
@@ -189,7 +173,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       Element profiles = projectElem.getChild(PROFILES, NAMESPACE);
       if (profiles != null) {
-        List<Element> profileList = profiles.getChildren(PROFILE, NAMESPACE);
+        List<Element> profileList = List.ofAll(profiles.getChildren(PROFILE, NAMESPACE));
         for (Element profile : profileList) {
           rewritePomBuild(resolvedItems, reactorKeys, profile);
           rewriteDependencyManagement(resolvedItems, reactorKeys, profile);
@@ -290,12 +274,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
               exclusions.addContent(exclusion);
               dependency.addContent(exclusions);
             }
-
-            // yank resolved comment
-            // TODO No longer adding the comment, so eventually can remove the yank
-            Comment comment = yankResolvedComment(dependency).orElse(new Comment(""));
-            //            comment.setText(String.format("%s%s ", RESOLVED_FROM, resolved.resolvedFrom()));
-            //            dependency.addContent(comment);
           }
         }
       }
@@ -309,20 +287,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         .stream()
         .map(project -> String.format(KEY_FORMAT, project.getGroupId(), project.getArtifactId()))
         .collect(Collectors.toSet());
-  }
-
-  private Optional<Comment> yankResolvedComment(Element element) {
-    List<Content> contents = element.getContent();
-    for (Content content : contents) {
-      if (content instanceof Comment) {
-        Comment comment = (Comment) content;
-        if (comment.getText().startsWith(RESOLVED_FROM)) {
-          comment.detach();
-          return Optional.of(comment);
-        }
-      }
-    }
-    return Optional.empty();
   }
 
   private String keyForMavenDependency(Element dependency) {
