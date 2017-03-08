@@ -102,10 +102,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           List<Resolved> resolvedExcludingReactorProjects =
               resolvedThings.resolved().filter(excludeReactorProjects);
 
+          List<Resolved> lockedExcludingReactorProjects =
+              resolvedThings.locked().filter(excludeReactorProjects);
+
           RangeResolver updated =
               rangeResolver
                   .withResolved(resolvedExcludingReactorProjects)
-                  .withLocked(resolvedThings.locked());
+                  .withLocked(lockedExcludingReactorProjects);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
 
