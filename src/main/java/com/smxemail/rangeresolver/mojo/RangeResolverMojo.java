@@ -214,6 +214,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     Element build = projectElem.getChild(BUILD, NAMESPACE);
     if (build != null) {
       rewritePomPlugins(resolvedItems, reactorKeys, build);
+      rewriteTiles(resolvedItems, build);
       Element pluginManagement = projectElem.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
       if (pluginManagement != null) {
         rewritePomPlugins(resolvedItems, reactorKeys, pluginManagement);
@@ -234,6 +235,34 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           Element version = plugin.getChild(VERSION, NAMESPACE);
           if (version != null) {
             version.setText(String.format("%s", resolved.version()));
+          }
+
+          // Replace plugin dependencies
+          rewritePomDependencies(resolvedItems, reactorKeys, plugin);
+        }
+      }
+    }
+  }
+
+  private void rewriteTiles(Map<String, Resolved> resolvedItems, Element build) {
+    Element plugins = build.getChild(PLUGINS, NAMESPACE);
+    if (plugins != null) {
+      for (Element plugin : plugins.getChildren()) {
+        String pluginKey = keyForMavenDependency(plugin);
+        if ("io.repaint.maven:tiles-maven-plugin".equals(pluginKey)) {
+          Element configuration = plugin.getChild("configuration", NAMESPACE);
+          if (configuration != null) {
+            Element tiles = configuration.getChild("tiles", NAMESPACE);
+            if (tiles != null) {
+              for (Element tile : tiles.getChildren("tile", NAMESPACE)) {
+                String gav = tile.getText();
+                String tileKey = gav.substring(0, gav.lastIndexOf(":") );
+                Resolved resolved = resolvedItems.get(tileKey);
+                if (resolved != null) {
+                  tile.setText(String.format("%s:[%s]", tileKey, resolved.version()));
+                }
+              }
+            }
           }
         }
       }
