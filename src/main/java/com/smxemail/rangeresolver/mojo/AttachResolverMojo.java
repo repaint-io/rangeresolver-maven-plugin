@@ -9,6 +9,7 @@ import java.io.File;
 
 @Mojo(name = "attach-deps", defaultPhase = LifecyclePhase.VERIFY, inheritByDefault = false)
 public class AttachResolverMojo extends AbstractRangeResolverMojo {
+  @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();

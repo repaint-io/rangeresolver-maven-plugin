@@ -77,6 +77,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private static final Pattern exclusionScopes =
       Pattern.compile("(compile|runtime)", Pattern.CASE_INSENSITIVE);
 
+  @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
@@ -256,7 +257,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             if (tiles != null) {
               for (Element tile : tiles.getChildren("tile", NAMESPACE)) {
                 String gav = tile.getText();
-                String tileKey = gav.substring(0, gav.lastIndexOf(":") );
+                String tileKey = gav.substring(0, gav.lastIndexOf(":"));
                 Resolved resolved = resolvedItems.get(tileKey);
                 if (resolved != null) {
                   tile.setText(String.format("%s:[%s]", tileKey, resolved.version()));

@@ -31,6 +31,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "strictDependency", defaultValue = "true")
   boolean strictDependency = true;
 
+  @Override
   public void execute() throws MojoExecutionException {
     MavenProject currentProject = mavenSession.getCurrentProject();
     File deps = resolveDepsFile();

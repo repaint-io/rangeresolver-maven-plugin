@@ -25,6 +25,7 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 )
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
+  @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
