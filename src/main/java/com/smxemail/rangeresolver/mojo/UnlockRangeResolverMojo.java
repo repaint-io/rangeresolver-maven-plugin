@@ -38,7 +38,7 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
                   .withLocked(List());
 
           writeRangeResolveSource(updated, new FileWriter(deps));
-          commitChangesToDependencies("Locked dependency ranges.", deps);
+          commitChangesToDependencies("Unlocked dependency ranges.", deps);
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);
         }
