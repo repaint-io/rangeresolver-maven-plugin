@@ -19,6 +19,7 @@ import static javaslang.API.List;
 @Mojo(name = "lock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
 
+  @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
@@ -29,10 +30,7 @@ public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
 
-          List<Resolved> allResolvedCurrentRelease =
-              rangeResolver.resolved().map(resolved -> resolved.withResolvedFrom(resolutionSource));
-
-          List<Resolved> allResolved = rangeResolver.locked().appendAll(allResolvedCurrentRelease);
+          List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 
           RangeResolver updated =
               rangeResolver

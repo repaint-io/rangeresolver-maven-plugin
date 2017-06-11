@@ -45,6 +45,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   @Parameter(required = true, readonly = true, property = "project")
   MavenProject project;
 
+  @Parameter boolean commitChanges = false;
+
   @Parameter boolean pushChanges = false;
 
   @Parameter(defaultValue = "${session}", readonly = true)
@@ -70,8 +72,11 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   protected void commitChangesToDependencies(String message, File baseDir, Set<File> files)
       throws MojoExecutionException {
-    if (!projectIsReleasing()) {
-      getLog().info("Project is not being released, skipping commit: " + message);
+    if (!projectDepsCommitable()) {
+      getLog()
+          .info(
+              "Project is not being released, or commits are disabled, skipping commit: "
+                  + message);
     } else {
       try {
         String connectionUrl =
@@ -105,6 +110,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
         throw new MojoExecutionException(e.getMessage(), e);
       }
     }
+  }
+
+  private boolean projectDepsCommitable() {
+    return commitChanges && projectIsReleasing();
   }
 
   private boolean projectIsReleasing() {

@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 @Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE)
 public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
 
+  @Override
   public void execute() throws MojoExecutionException {
 
     getLog().info("Added project/dependency resolution as session properties...");
