@@ -4,7 +4,7 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
-import javaslang.collection.List;
+import io.vavr.collection.List;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -14,7 +14,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
-import static javaslang.API.List;
+import static io.vavr.API.List;
 
 @Mojo(name = "unlock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
