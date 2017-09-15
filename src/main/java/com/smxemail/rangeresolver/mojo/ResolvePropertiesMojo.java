@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE)
+@Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
 
   @Override
