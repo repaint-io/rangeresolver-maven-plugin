@@ -1,7 +1,6 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
@@ -10,7 +9,7 @@ import java.io.File;
 @Mojo(name = "attach-deps", defaultPhase = LifecyclePhase.VERIFY, inheritByDefault = false)
 public class AttachResolverMojo extends AbstractRangeResolverMojo {
   @Override
-  public void execute() throws MojoExecutionException {
+  public void execute() {
     if (project.isExecutionRoot()) {
       File deps = resolveDepsFile();
       if (deps.exists()) {

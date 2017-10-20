@@ -36,10 +36,16 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
-              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+              RangeResolverProcessor.parseRangeResolver(
+                  resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
           RepositoryResolver repositoryResolver =
               RepositoryResolver.createRepositoryResolver(
-                  getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
+                  getLog()::info,
+                  getLog()::warn,
+                  localRepoDir,
+                  allowUnlocked,
+                  allowSnapshots,
+                  updateSnapshots);
 
           ResolutionResult resolutionResult =
               repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
@@ -74,7 +80,8 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
     try {
       return res.withRange(res.range().withLower(version));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(String.format("Unable to resolve: %s - %s", res.key(), e.getMessage()), e);
+      throw new IllegalArgumentException(
+          String.format("Unable to resolve: %s - %s", res.key(), e.getMessage()), e);
     }
   }
 }
