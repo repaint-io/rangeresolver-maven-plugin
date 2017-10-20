@@ -46,7 +46,8 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
                 .collect(Collectors.toList());
 
         RangeResolver rangeResolver =
-            RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+            RangeResolverProcessor.parseRangeResolver(
+                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
         for (MavenProject mavenProject : mavenSession.getAllProjects()) {
           for (Resolved resolved : resolvedProjects) {

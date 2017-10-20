@@ -40,7 +40,9 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver = parseRangeResolver(resolutionSource, new FileReader(deps));
+        RangeResolver rangeResolver =
+            parseRangeResolver(
+                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
         Predicate<Dependency> isUndeclared = declaredDependency(rangeResolver).negate();
         Set<Dependency> undeclared = getDependencies(currentProject, isUndeclared);
 

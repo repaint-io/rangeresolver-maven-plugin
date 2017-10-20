@@ -88,10 +88,17 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
-              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+              RangeResolverProcessor.parseRangeResolver(
+                  resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+
           RepositoryResolver repositoryResolver =
               RepositoryResolver.createRepositoryResolver(
-                  getLog()::info, getLog()::warn, localRepoDir, updateSnapshots);
+                  getLog()::info,
+                  getLog()::warn,
+                  localRepoDir,
+                  allowUnlocked,
+                  allowSnapshots,
+                  updateSnapshots);
 
           ResolutionResult resolvedThings =
               repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);

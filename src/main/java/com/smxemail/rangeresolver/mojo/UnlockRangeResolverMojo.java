@@ -28,7 +28,8 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
           getLog().info("Unlocking resolved ranges...");
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
-              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps));
+              RangeResolverProcessor.parseRangeResolver(
+                  resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
           List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 

@@ -49,6 +49,12 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   @Parameter boolean pushChanges = false;
 
+  @Parameter(property = "allowUnlocked")
+  String allowUnlocked = "";
+
+  @Parameter(property = "allowSnapshots")
+  String allowSnapshots = "";
+
   @Parameter(defaultValue = "${session}", readonly = true)
   MavenSession mavenSession;
 
