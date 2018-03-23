@@ -53,10 +53,17 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           Map<String, Resolved> resolvedThings =
               resolutionResult.resolved().collect(Resolved.collectByKey);
 
-          List<Resolve> updatedLowerBounds =
+          List<Resolve> updatedLowerBoundResolves =
               rangeResolver.resolves().map(res -> resolveLowerBound(resolvedThings, res));
 
-          RangeResolver updated = rangeResolver.withResolves(updatedLowerBounds);
+          List<Resolve> updatedLowerBoundOverrides =
+              rangeResolver.overrides().map(res -> resolveLowerBound(resolvedThings, res));
+
+          RangeResolver updated =
+              rangeResolver
+                  .withResolves(updatedLowerBoundResolves)
+                  .withOverrides(updatedLowerBoundOverrides);
+
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies("Updated lower bounds of ranges.", deps);
         } catch (Exception e) {
