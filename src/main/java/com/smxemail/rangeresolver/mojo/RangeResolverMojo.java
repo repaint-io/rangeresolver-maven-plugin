@@ -7,7 +7,9 @@ import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import io.vavr.collection.List;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -173,12 +175,18 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             .stream()
             .flatMap(
                 project -> {
-                  List<String> keys = List.empty();
-
-                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(project.getDependencyManagement().getDependencies())));
-                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(project.getDependencies())));
-                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(project.getPluginManagement().getPlugins())));
+                  List<String> keys = resolveDependencyKeys(List.ofAll(project.getDependencies()));
                   keys = keys.appendAll(resolvePluginKeys(List.ofAll(project.getBuildPlugins())));
+
+                  DependencyManagement dependencyManagement = project.getDependencyManagement();
+                  if (dependencyManagement != null) {
+                    keys = keys.appendAll(resolveDependencyKeys(List.ofAll(dependencyManagement.getDependencies())));
+                  }
+
+                  PluginManagement pluginManagement = project.getPluginManagement();
+                  if (pluginManagement != null) {
+                    keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
+                  }
 
                   return keys.toJavaStream();
                 })
