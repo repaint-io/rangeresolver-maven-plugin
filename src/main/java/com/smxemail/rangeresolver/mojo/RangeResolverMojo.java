@@ -111,7 +111,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
               repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
           Predicate<Resolved> excludeReactorProjects = buildProjectKeysPredicate().negate();
-          Predicate<Resolved> excludeUnusedDependencies = buildProjectDependenciesPredicate();
 
           List<Resolved> resolvedExcludingReactorProjects =
               resolvedThings.resolved().filter(excludeReactorProjects);
@@ -120,6 +119,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
               resolvedThings.locked().filter(excludeReactorProjects);
 
           if (filterUnusedDependencies) {
+            Predicate<Resolved> excludeUnusedDependencies = buildProjectDependenciesPredicate();
+
             resolvedExcludingReactorProjects =
                 resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
             lockedExcludingReactorProjects =
@@ -172,21 +173,28 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             .stream()
             .flatMap(
                 project -> {
-                  Set<String> keys = new HashSet<>();
-                  for (Dependency dependency : project.getDependencies()) {
-                    keys.add(keyFor(dependency.getGroupId(), dependency.getArtifactId()));
-                  }
-                  for (Plugin plugin : project.getBuildPlugins()) {
-                    keys.add(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
-                    for (Dependency dependency : plugin.getDependencies()) {
-                      keys.add(keyFor(dependency.getGroupId(), dependency.getArtifactId()));
-                    }
-                  }
-                  return keys.stream();
+                  List<String> keys = List.empty();
+
+                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(project.getDependencyManagement().getDependencies())));
+                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(project.getDependencies())));
+                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(project.getPluginManagement().getPlugins())));
+                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(project.getBuildPlugins())));
+
+                  return keys.toJavaStream();
                 })
             .collect(Collectors.toSet());
 
     return r -> usedDependencyKeys.contains(r.key());
+  }
+
+  private List<String> resolveDependencyKeys(List<Dependency> dependencies) {
+    return dependencies.map(d -> keyFor(d.getGroupId(), d.getArtifactId()));
+  }
+
+  private List<String> resolvePluginKeys(List<Plugin> plugins) {
+    return plugins.flatMap(plugin -> {
+      return resolveDependencyKeys(List.ofAll(plugin.getDependencies())).append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+    });
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {
@@ -200,13 +208,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     try {
       Set<String> reactorKeys = resolveReactorKeys();
 
-      Document pomDocument = new SAXBuilder().build(pomFile);
-
       Map<String, Resolved> resolvedItems = new HashMap<>();
       resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
       resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
 
+      Document pomDocument = new SAXBuilder().build(pomFile);
       Element projectElem = pomDocument.getRootElement();
+
       rewritePomBuild(resolvedItems, reactorKeys, projectElem);
       rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
 
