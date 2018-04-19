@@ -129,19 +129,18 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
           }
 
-          RangeResolver updated =
+          writeRangeResolveSource(
               rangeResolver
                   .withResolved(resolvedExcludingReactorProjects)
-                  .withLocked(lockedExcludingReactorProjects);
-
-          writeRangeResolveSource(updated, new FileWriter(deps));
+                  .withLocked(lockedExcludingReactorProjects),
+              new FileWriter(deps));
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
           Set<File> pomFiles = findPomFiles(baseDir);
 
           for (File file : pomFiles) {
-            rewritePom(updated, file);
+            rewritePom(rangeResolver, file);
           }
 
           Set<File> allFiles = new HashSet<>(pomFiles);
@@ -180,12 +179,17 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
                   DependencyManagement dependencyManagement = project.getDependencyManagement();
                   if (dependencyManagement != null) {
-                    keys = keys.appendAll(resolveDependencyKeys(List.ofAll(dependencyManagement.getDependencies())));
+                    keys =
+                        keys.appendAll(
+                            resolveDependencyKeys(
+                                List.ofAll(dependencyManagement.getDependencies())));
                   }
 
                   PluginManagement pluginManagement = project.getPluginManagement();
                   if (pluginManagement != null) {
-                    keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
+                    keys =
+                        keys.appendAll(
+                            resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
                   }
 
                   return keys.toJavaStream();
@@ -200,9 +204,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private List<String> resolvePluginKeys(List<Plugin> plugins) {
-    return plugins.flatMap(plugin -> {
-      return resolveDependencyKeys(List.ofAll(plugin.getDependencies())).append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
-    });
+    return plugins.flatMap(
+        plugin ->
+            resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
+                .append(keyFor(plugin.getGroupId(), plugin.getArtifactId())));
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {
