@@ -29,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -82,6 +83,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   @Parameter(property = "filterUnusedDependencies")
   public boolean filterUnusedDependencies = false;
+
+  @Parameter public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
   private static final Pattern exclusionScopes =
       Pattern.compile("(compile|runtime)", Pattern.CASE_INSENSITIVE);
@@ -173,11 +176,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             .getAllProjects()
             .stream()
             .flatMap(
-                project -> {
-                  List<String> keys = resolveDependencyKeys(List.ofAll(project.getDependencies()));
-                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(project.getBuildPlugins())));
+                p -> {
+                  List<String> keys = List.empty();
+                  keys = keys.appendAll(List.ofAll(retainUnusedDependencies));
+                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())));
+                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
 
-                  DependencyManagement dependencyManagement = project.getDependencyManagement();
+                  DependencyManagement dependencyManagement = p.getDependencyManagement();
                   if (dependencyManagement != null) {
                     keys =
                         keys.appendAll(
@@ -185,14 +190,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                                 List.ofAll(dependencyManagement.getDependencies())));
                   }
 
-                  PluginManagement pluginManagement = project.getPluginManagement();
+                  PluginManagement pluginManagement = p.getPluginManagement();
                   if (pluginManagement != null) {
                     keys =
                         keys.appendAll(
                             resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
                   }
 
-                  return keys.toJavaStream();
+                  return keys.toJavaStream().distinct();
                 })
             .collect(Collectors.toSet());
 
