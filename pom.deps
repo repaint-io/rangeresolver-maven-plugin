@@ -1,0 +1,14 @@
+// SMX Nexus Repository
+repository http://nexus.smxemail.com/nexus/content/repositories/releases/;
+
+import smx3:smx3.bill-of-materials:3.0.4;
+
+allow unlocked /^.*smx.*$/;
+
+alias org.immutables:value as immutables.value.version;
+alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
+
+locked org.apache.maven:maven-artifact:3.5.2 from smx3:smx3.bill-of-materials:2.1.1;
+locked org.jacoco:jacoco-maven-plugin:0.8.1 from smx3:smx3.upstream.bill-of-materials:1.0.6;
+locked org.jdom:jdom2:2.0.6 from smx3:smx3.bill-of-materials:2.1.1;
+locked org.testng:testng:6.14.3 from smx3:smx3.upstream.bill-of-materials:1.0.6;
