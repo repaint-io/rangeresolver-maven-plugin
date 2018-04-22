@@ -4,7 +4,7 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.1.25-SNAPSHOT</version>
+  <version>1.1.26-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
@@ -111,7 +111,7 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.0.0,3.0.0)</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.1.32]</tile>
             <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.0.0,4.0.0)</tile>
           </tiles>
         </configuration>
