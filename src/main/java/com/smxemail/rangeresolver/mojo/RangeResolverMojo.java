@@ -140,13 +140,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
-          Set<File> pomFiles = findPomFiles(baseDir);
+          Set<File> allFiles = rewritePomFiles(rangeResolver
+              .withResolved(resolvedExcludingReactorProjects)
+              .withLocked(lockedExcludingReactorProjects), baseDir);
 
-          for (File file : pomFiles) {
-            rewritePom(rangeResolver, file);
-          }
-
-          Set<File> allFiles = new HashSet<>(pomFiles);
           allFiles.add(deps);
 
           commitChangesToDependencies("Updated dependency ranges.", baseDir, allFiles);
@@ -158,6 +155,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         getLog().warn("Skipping range resolution - deps file is missing.");
       }
     }
+  }
+
+  private Set<File> rewritePomFiles(RangeResolver pomResolver, File baseDir) throws IOException {
+    Set<File> pomFiles = findPomFiles(baseDir);
+
+    for (File file : pomFiles) {
+      rewritePom(pomResolver, file);
+    }
+
+    return new HashSet<>(pomFiles);
   }
 
   private Set<File> findPomFiles(File baseDir) throws IOException {
