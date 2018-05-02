@@ -84,10 +84,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "filterUnusedDependencies")
   public boolean filterUnusedDependencies = false;
 
+  @Parameter(property = "relaxTestDependencies")
+  public boolean relaxTestDependencies = false;
+
   @Parameter public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
   private static final Pattern exclusionScopes =
-      Pattern.compile("(compile|runtime)", Pattern.CASE_INSENSITIVE);
+      Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -140,9 +143,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
-          Set<File> allFiles = rewritePomFiles(rangeResolver
-              .withResolved(resolvedExcludingReactorProjects)
-              .withLocked(lockedExcludingReactorProjects), baseDir);
+          Set<File> allFiles =
+              rewritePomFiles(
+                  rangeResolver
+                      .withResolved(resolvedExcludingReactorProjects)
+                      .withLocked(lockedExcludingReactorProjects),
+                  baseDir);
 
           allFiles.add(deps);
 
@@ -378,12 +384,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           // Replace version
           Element version = dependency.getChild(VERSION, NAMESPACE);
           if (version != null) {
+            boolean isExclusivelyScoped = isExclusivelyScoped(dependency);
+            boolean isTestScoped = isTestScoped(dependency);
+
             version.setText(String.format("[%s]", resolved.version()));
 
-            Element scope = dependency.getChild(SCOPE, NAMESPACE);
+            if (isTestScoped && relaxTestDependencies) {
+              version.setText(String.format("%s", resolved.version()));
+            }
 
-            if (scope == null || exclusionScopes.matcher(scope.getText()).matches()) {
-
+            if (isExclusivelyScoped) {
               // Exclude transitive dependencies from compile time scoped items.
               dependency.removeChild(EXCLUSIONS, NAMESPACE);
               Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
@@ -397,6 +407,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         }
       }
     }
+  }
+
+  private boolean isExclusivelyScoped(Element dependency) {
+    Element scope = dependency.getChild(SCOPE, NAMESPACE);
+    return scope == null || exclusionScopes.matcher(scope.getText()).matches();
+  }
+
+  private boolean isTestScoped(Element dependency) {
+    Element scope = dependency.getChild(SCOPE, NAMESPACE);
+    return scope != null && "test".equalsIgnoreCase(scope.getText());
   }
 
   private Set<String> resolveReactorKeys() {
