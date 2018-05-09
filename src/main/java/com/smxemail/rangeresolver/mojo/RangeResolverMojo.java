@@ -413,8 +413,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private boolean isRelaxedScope(Element dependency) {
-    Element scope = dependency.getChild(SCOPE, NAMESPACE);
-    return scope != null && scope.getText().matches(relaxedScopes);
+    Element scopeElement = dependency.getChild(SCOPE, NAMESPACE);
+    String scope = scopeElement != null ? scopeElement.getText() : "compile";
+    return scope.matches(relaxedScopes);
   }
 
   private Set<String> resolveReactorKeys() {
