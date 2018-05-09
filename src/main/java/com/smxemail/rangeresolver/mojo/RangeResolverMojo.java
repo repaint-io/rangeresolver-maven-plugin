@@ -84,8 +84,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "filterUnusedDependencies")
   public boolean filterUnusedDependencies = false;
 
-  @Parameter(property = "relaxTestDependencies")
-  public boolean relaxTestDependencies = false;
+  @Parameter(property = "relaxedScopes")
+  public String relaxedScopes = "";
 
   @Parameter public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
@@ -384,16 +384,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           // Replace version
           Element version = dependency.getChild(VERSION, NAMESPACE);
           if (version != null) {
-            boolean isExclusivelyScoped = isExclusivelyScoped(dependency);
-            boolean isTestScoped = isTestScoped(dependency);
 
-            version.setText(String.format("[%s]", resolved.version()));
-
-            if (isTestScoped && relaxTestDependencies) {
+            if (isRelaxedScope(dependency)) {
               version.setText(String.format("%s", resolved.version()));
+            } else {
+              version.setText(String.format("[%s]", resolved.version()));
             }
 
-            if (isExclusivelyScoped) {
+            if (isExclusivelyScoped(dependency)) {
               // Exclude transitive dependencies from compile time scoped items.
               dependency.removeChild(EXCLUSIONS, NAMESPACE);
               Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
@@ -414,9 +412,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     return scope == null || exclusionScopes.matcher(scope.getText()).matches();
   }
 
-  private boolean isTestScoped(Element dependency) {
+  private boolean isRelaxedScope(Element dependency) {
     Element scope = dependency.getChild(SCOPE, NAMESPACE);
-    return scope != null && "test".equalsIgnoreCase(scope.getText());
+    return scope != null && scope.getText().matches(relaxedScopes);
   }
 
   private Set<String> resolveReactorKeys() {
