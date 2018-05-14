@@ -1,7 +1,7 @@
 // SMX Nexus Repository
 repository http://nexus.smxemail.com/nexus/content/repositories/releases/;
 
-import smx3:smx3.bill-of-materials:3.0.7;
+import smx3:smx3.bill-of-materials:3.0.8;
 
 allow unlocked /^.*smx.*$/;
 
