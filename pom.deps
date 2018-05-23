@@ -16,7 +16,7 @@ locked com.smxemail.tiles:com.smxemail.tiles.osgi:2.0.4 from smx3:smx3.bill-of-m
 locked com.smxemail.tiles:com.smxemail.tiles.osgiapi:2.0.9 from smx3:smx3.bill-of-materials:3.0.4;
 locked com.smxemail.tiles:com.smxemail.tiles.osgibundle:2.0.12 from smx3:smx3.bill-of-materials:3.0.4;
 locked com.smxemail.tiles:com.smxemail.tiles.osgiservices:2.1.2 from smx3:smx3.bill-of-materials:3.0.5;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.1.36 from com.smxemail:rangeresolver-maven-plugin:1.1.26;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.1.42 from com.smxemail:rangeresolver-maven-plugin:1.1.26;
 locked com.smxemail:com.smxemail.errorprone.checks:1.0.1 from smx3:smx3.bill-of-materials:3.0.5;
 locked com.theoryinpractise:quickcheckng:1.1.4 from smx3:smx3.bill-of-materials:2.1.1;
 locked org.apache.maven:maven-artifact:3.5.2 from smx3:smx3.bill-of-materials:2.1.1;

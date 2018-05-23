@@ -392,14 +392,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             }
 
             if (isExclusivelyScoped(dependency)) {
-              // Exclude transitive dependencies from compile time scoped items.
-              dependency.removeChild(EXCLUSIONS, NAMESPACE);
-              Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
-              Element exclusion = new Element(EXCLUSION, NAMESPACE);
-              exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(WILDCARD));
-              exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(WILDCARD));
-              exclusions.addContent(exclusion);
-              dependency.addContent(exclusions);
+              boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
+              if (!hasExistingExclusions) {
+                Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
+                Element exclusion = new Element(EXCLUSION, NAMESPACE);
+                exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(WILDCARD));
+                exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(WILDCARD));
+                exclusions.addContent(exclusion);
+                dependency.addContent(exclusions);
+              }
             }
           }
         }
