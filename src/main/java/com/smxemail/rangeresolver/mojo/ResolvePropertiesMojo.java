@@ -3,17 +3,17 @@ package com.smxemail.rangeresolver.mojo;
 import com.smxemail.rangeresolver.api.Range;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
+import com.smxemail.rangeresolver.api.ResolvedType;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.project.MavenProject;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.project.MavenProject;
 
 @Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
@@ -42,7 +42,8 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
                             proj.getVersion(),
                             "",
                             proj.getArtifactId() + ".version",
-                            Range.fixed(project.getVersion())))
+                            Range.fixed(project.getVersion()),
+                            ResolvedType.RESOLVED))
                 .collect(Collectors.toList());
 
         RangeResolver rangeResolver =
