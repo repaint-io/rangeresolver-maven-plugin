@@ -6,10 +6,10 @@ import smx3:smx3.bill-of-materials:3.0.11;
 
 allow unlocked /^.*smx.*$/;
 
-resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.19-SNAPSHOT,2.0.0);
+resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.20,2.0.0);
 resolve highest com.google.truth:truth:[0.42,1.0) via public;
 
-override highest com.google.guava:guava:[25.1-jre,30.0) via public filtering /^.*(SNAPSHOT).*$/;
+override highest com.google.guava:guava:[26.0-jre,30.0) via public filtering /^.*(SNAPSHOT).*$/;
 override highest org.antlr:antlr4-maven-plugin:[4.7.1,5.0.0) via public;
 override highest org.antlr:antlr4-runtime:[4.7.1,5.0) via public;
 
@@ -17,8 +17,8 @@ alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 
 resolved com.google.truth:truth:0.42 from com.smxemail:rangeresolver-maven-plugin:1.1.33;
-resolved com.smxemail.tiles:com.smxemail.tiles.enforcements:3.1.53 from com.smxemail:rangeresolver-maven-plugin:1.1.33;
-resolved com.smxemail:com.smxemail.rangeresolver:1.1.19-SNAPSHOT from com.smxemail:rangeresolver-maven-plugin:1.1.33;
+resolved com.smxemail.tiles:com.smxemail.tiles.enforcements:3.1.58 from com.smxemail:rangeresolver-maven-plugin:1.1.33;
+resolved com.smxemail:com.smxemail.rangeresolver:1.1.20 from com.smxemail:rangeresolver-maven-plugin:1.1.33;
 resolved org.antlr:antlr4-runtime:4.7.1 from com.smxemail:rangeresolver-maven-plugin:1.1.33;
 
 locked com.github.sviperll:adt4j:3.2 from smx3:smx3.bill-of-materials:2.1.1;
