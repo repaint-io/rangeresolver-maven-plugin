@@ -1,5 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
+import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolve;
@@ -7,22 +9,18 @@ import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import io.vavr.collection.List;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Map;
-
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
 
 @Mojo(
-  name = "update-lower-bounds",
-  defaultPhase = LifecyclePhase.INITIALIZE,
-  inheritByDefault = false
-)
+    name = "update-lower-bounds",
+    defaultPhase = LifecyclePhase.INITIALIZE,
+    inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
   @Override
@@ -56,13 +54,7 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           List<Resolve> updatedLowerBoundResolves =
               rangeResolver.resolves().map(res -> resolveLowerBound(resolvedThings, res));
 
-          List<Resolve> updatedLowerBoundOverrides =
-              rangeResolver.overrides().map(res -> resolveLowerBound(resolvedThings, res));
-
-          RangeResolver updated =
-              rangeResolver
-                  .withResolves(updatedLowerBoundResolves)
-                  .withOverrides(updatedLowerBoundOverrides);
+          RangeResolver updated = rangeResolver.withResolves(updatedLowerBoundResolves);
 
           writeRangeResolveSource(updated, new FileWriter(deps));
           commitChangesToDependencies("Updated lower bounds of ranges.", deps);

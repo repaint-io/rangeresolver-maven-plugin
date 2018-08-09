@@ -84,6 +84,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "filterUnusedDependencies")
   public boolean filterUnusedDependencies = false;
 
+  @Parameter(property = "allowDeprecatedDependencies")
+  public boolean allowDeprecatedDependencies = true;
+
   @Parameter(property = "relaxedScopes")
   public String relaxedScopes = "";
 
@@ -120,6 +123,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           Predicate<Resolved> excludeReactorProjects = buildProjectKeysPredicate().negate();
 
+          List<Resolved> deprecatedExcludingReactorProjects =
+              resolvedThings.deprecated().filter(excludeReactorProjects);
+
           List<Resolved> resolvedExcludingReactorProjects =
               resolvedThings.resolved().filter(excludeReactorProjects);
 
@@ -133,10 +139,20 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
             lockedExcludingReactorProjects =
                 lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            deprecatedExcludingReactorProjects =
+                deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
+          }
+
+          if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
+            throw new MojoExecutionException(
+                String.format(
+                    "Disallowed deprecated dependencies found: %s",
+                    deprecatedExcludingReactorProjects.mkString(", ")));
           }
 
           writeRangeResolveSource(
               rangeResolver
+                  .withDeprecated(deprecatedExcludingReactorProjects)
                   .withResolved(resolvedExcludingReactorProjects)
                   .withLocked(lockedExcludingReactorProjects),
               new FileWriter(deps));
@@ -146,6 +162,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           Set<File> allFiles =
               rewritePomFiles(
                   rangeResolver
+                      .withDeprecated(deprecatedExcludingReactorProjects)
                       .withResolved(resolvedExcludingReactorProjects)
                       .withLocked(lockedExcludingReactorProjects),
                   baseDir);
