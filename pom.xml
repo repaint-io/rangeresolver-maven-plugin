@@ -135,7 +135,7 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.1.44]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.1.46]</tile>
             <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.1.58]</tile>
           </tiles>
         </configuration>
