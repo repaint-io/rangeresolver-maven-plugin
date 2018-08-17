@@ -5,15 +5,17 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.api.ResolvedType;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
+import io.vavr.collection.HashSet;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.project.MavenProject;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.project.MavenProject;
 
 @Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
@@ -28,6 +30,15 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
 
       try {
         String resolutionSource = getSourceReference(mavenSession);
+
+        RangeResolver rangeResolver =
+            RangeResolverProcessor.parseRangeResolver(
+                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+
+        if (!allowDeprecatedDependencies && !rangeResolver.deprecated().isEmpty()) {
+          throwDeprecationException(rangeResolver.deprecated());
+          return;
+        }
 
         List<Resolved> resolvedProjects =
             mavenSession
@@ -46,18 +57,15 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
                             ResolvedType.RESOLVED))
                 .collect(Collectors.toList());
 
-        RangeResolver rangeResolver =
-            RangeResolverProcessor.parseRangeResolver(
-                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+        HashSet<Resolved> allResolved =
+            HashSet.<Resolved>empty()
+                .addAll(resolvedProjects)
+                .addAll(rangeResolver.resolved())
+                .addAll(rangeResolver.locked())
+                .addAll(rangeResolver.deprecated());
 
         for (MavenProject mavenProject : mavenSession.getAllProjects()) {
-          for (Resolved resolved : resolvedProjects) {
-            mavenProject.getProperties().put(resolved.propertyName(), resolved.version());
-          }
-          for (Resolved resolved : rangeResolver.resolved()) {
-            mavenProject.getProperties().put(resolved.propertyName(), resolved.version());
-          }
-          for (Resolved resolved : rangeResolver.locked()) {
+          for (Resolved resolved : allResolved) {
             mavenProject.getProperties().put(resolved.propertyName(), resolved.version());
           }
         }
