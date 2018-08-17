@@ -14,6 +14,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -146,7 +147,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
             throw new MojoExecutionException(
                 String.format(
-                    "Disallowed deprecated dependencies found: %s",
+                    "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's " +
+                        "properties to bypass.",
                     deprecatedExcludingReactorProjects.mkString(", ")));
           }
 
@@ -240,9 +242,25 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   private List<String> resolvePluginKeys(List<Plugin> plugins) {
     return plugins.flatMap(
-        plugin ->
-            resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
-                .append(keyFor(plugin.getGroupId(), plugin.getArtifactId())));
+        plugin -> {
+          List<String> append = resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
+                                    .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+
+          if (plugin.getArtifactId().equals("tiles-maven-plugin")) {
+            append = append.appendAll(extractTileKeysFromConfiguration(plugin));
+          }
+          return append;
+        });
+  }
+
+  private List<String> extractTileKeysFromConfiguration(Plugin plugin) {
+    Xpp3Dom config = (Xpp3Dom) plugin.getConfiguration();
+    Xpp3Dom tiles = config.getChild("tiles");
+
+    return List.of(tiles.getChildren()).map(tile -> {
+      String[] parts = tile.getValue().split(":");
+      return keyFor(parts[0], parts[1]);
+    });
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {
