@@ -82,12 +82,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String SCOPE = "scope";
 
-  @Parameter(property = "filterUnusedDependencies")
-  public boolean filterUnusedDependencies = false;
-
-  @Parameter(property = "allowDeprecatedDependencies")
-  public boolean allowDeprecatedDependencies = true;
-
   @Parameter(property = "relaxedScopes")
   public String relaxedScopes = "";
 
@@ -145,11 +139,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           }
 
           if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
-            throw new MojoExecutionException(
-                String.format(
-                    "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's " +
-                        "properties to bypass.",
-                    deprecatedExcludingReactorProjects.mkString(", ")));
+            throwDeprecationException(deprecatedExcludingReactorProjects);
+            return;
           }
 
           writeRangeResolveSource(
@@ -209,10 +200,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             .stream()
             .flatMap(
                 p -> {
-                  List<String> keys = List.empty();
-                  keys = keys.appendAll(List.ofAll(retainUnusedDependencies));
-                  keys = keys.appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())));
-                  keys = keys.appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
+                  List<String> keys =
+                      List.<String>empty()
+                          .appendAll(List.ofAll(retainUnusedDependencies))
+                          .appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())))
+                          .appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
 
                   DependencyManagement dependencyManagement = p.getDependencyManagement();
                   if (dependencyManagement != null) {
@@ -243,8 +235,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private List<String> resolvePluginKeys(List<Plugin> plugins) {
     return plugins.flatMap(
         plugin -> {
-          List<String> append = resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
-                                    .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+          List<String> append =
+              resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
+                  .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
 
           if (plugin.getArtifactId().equals("tiles-maven-plugin")) {
             append = append.appendAll(extractTileKeysFromConfiguration(plugin));
@@ -257,10 +250,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     Xpp3Dom config = (Xpp3Dom) plugin.getConfiguration();
     Xpp3Dom tiles = config.getChild("tiles");
 
-    return List.of(tiles.getChildren()).map(tile -> {
-      String[] parts = tile.getValue().split(":");
-      return keyFor(parts[0], parts[1]);
-    });
+    return List.of(tiles.getChildren())
+        .map(
+            tile -> {
+              String[] parts = tile.getValue().split(":");
+              return keyFor(parts[0], parts[1]);
+            });
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {

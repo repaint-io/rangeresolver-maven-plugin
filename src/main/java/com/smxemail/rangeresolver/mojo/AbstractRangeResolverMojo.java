@@ -1,6 +1,8 @@
 package com.smxemail.rangeresolver.mojo;
 
 import com.google.common.base.MoreObjects;
+import com.smxemail.rangeresolver.api.Resolved;
+import io.vavr.collection.List;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
@@ -60,6 +62,12 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   @Parameter(required = true, defaultValue = "${project.build.outputDirectory}")
   File outputDirectory;
+
+  @Parameter(property = "filterUnusedDependencies")
+  public boolean filterUnusedDependencies = false;
+
+  @Parameter(property = "allowDeprecatedDependencies")
+  public boolean allowDeprecatedDependencies = true;
 
   protected File resolveDepsFile() {
     return resolveDepsFile(mavenSession);
@@ -124,6 +132,15 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   private boolean projectIsReleasing() {
     return new File(project.getBasedir(), "release.properties").exists();
+  }
+
+  protected void throwDeprecationException(List<Resolved> deprecatedExcludingReactorProjects)
+      throws MojoExecutionException {
+    throw new MojoExecutionException(
+        String.format(
+            "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
+                + "properties to bypass.",
+            deprecatedExcludingReactorProjects.mkString(", ")));
   }
 
   private boolean containsDepChange(StatusScmResult statusScmResult, Set<File> files) {
