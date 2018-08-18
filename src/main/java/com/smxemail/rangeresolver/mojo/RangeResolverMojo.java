@@ -272,6 +272,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       Map<String, Resolved> resolvedItems = new HashMap<>();
       resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
       resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
+      resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
 
       Document pomDocument = new SAXBuilder().build(pomFile);
       Element projectElem = pomDocument.getRootElement();
