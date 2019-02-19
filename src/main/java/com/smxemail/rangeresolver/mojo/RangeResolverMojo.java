@@ -248,14 +248,19 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   private List<String> extractTileKeysFromConfiguration(Plugin plugin) {
     Xpp3Dom config = (Xpp3Dom) plugin.getConfiguration();
-    Xpp3Dom tiles = config.getChild("tiles");
+    if (config != null) {
+      Xpp3Dom tiles = config.getChild("tiles");
+      if (tiles != null) {
+        return List.of(tiles.getChildren())
+                   .map(
+                       tile -> {
+                         String[] parts = tile.getValue().split(":");
+                         return keyFor(parts[0], parts[1]);
+                       });
+      }
+    }
 
-    return List.of(tiles.getChildren())
-        .map(
-            tile -> {
-              String[] parts = tile.getValue().split(":");
-              return keyFor(parts[0], parts[1]);
-            });
+    return List.empty();
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {
