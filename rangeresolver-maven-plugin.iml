@@ -11,7 +11,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="com.smxemail.rangeresolver" />
+    <orderEntry type="library" name="Maven: com.smxemail:com.smxemail.rangeresolver:1.1.21" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:27.1-jre" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-resolver-provider:3.5.3" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven.resolver:maven-resolver-api:1.1.1" level="project" />

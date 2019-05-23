@@ -139,6 +139,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
             deprecatedExcludingReactorProjects =
                 deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            blacklistedExcludingReactorProjects =
+                blacklistedExcludingReactorProjects.filter(excludeUnusedDependencies);
           }
 
           if (!allowBlacklistedDependencies && !blacklistedExcludingReactorProjects.isEmpty()) {
