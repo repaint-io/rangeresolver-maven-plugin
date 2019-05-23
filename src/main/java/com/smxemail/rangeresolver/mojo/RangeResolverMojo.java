@@ -118,6 +118,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           Predicate<Resolved> excludeReactorProjects = buildProjectKeysPredicate().negate();
 
+          List<Resolved> blacklistedExcludingReactorProjects =
+              resolvedThings.blacklisted().filter(excludeReactorProjects);
+
           List<Resolved> deprecatedExcludingReactorProjects =
               resolvedThings.deprecated().filter(excludeReactorProjects);
 
@@ -138,6 +141,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
           }
 
+          if (!allowBlacklistedDependencies && !blacklistedExcludingReactorProjects.isEmpty()) {
+            throwBlacklistedException(blacklistedExcludingReactorProjects);
+            return;
+          }
+
           if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
             throwDeprecationException(deprecatedExcludingReactorProjects);
             return;
@@ -145,6 +153,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           writeRangeResolveSource(
               rangeResolver
+                  .withBlacklisted(blacklistedExcludingReactorProjects)
                   .withDeprecated(deprecatedExcludingReactorProjects)
                   .withResolved(resolvedExcludingReactorProjects)
                   .withLocked(lockedExcludingReactorProjects),
@@ -278,6 +287,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
       resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
       resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
+      resolvedItems.putAll(updated.blacklisted().collect(Resolved.collectByKey));
 
       Document pomDocument = new SAXBuilder().build(pomFile);
       Element projectElem = pomDocument.getRootElement();

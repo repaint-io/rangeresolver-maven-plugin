@@ -69,6 +69,9 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   @Parameter(property = "allowDeprecatedDependencies")
   public boolean allowDeprecatedDependencies = true;
 
+  @Parameter(property = "allowBlacklistedDependencies")
+  public boolean allowBlacklistedDependencies = true;
+
   protected File resolveDepsFile() {
     return resolveDepsFile(mavenSession);
   }
@@ -132,6 +135,14 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   private boolean projectIsReleasing() {
     return new File(project.getBasedir(), "release.properties").exists();
+  }
+
+  protected void throwBlacklistedException(List<Resolved> blacklistedExcludingReactorProjects)
+      throws MojoExecutionException {
+    throw new MojoExecutionException(
+        String.format(
+            "Blacklisted dependencies found: %s - please update the code base to no longer use these dependencies .",
+            blacklistedExcludingReactorProjects.mkString(", ")));
   }
 
   protected void throwDeprecationException(List<Resolved> deprecatedExcludingReactorProjects)
