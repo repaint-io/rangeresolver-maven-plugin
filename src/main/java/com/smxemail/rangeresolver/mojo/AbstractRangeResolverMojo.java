@@ -141,7 +141,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
       throws MojoExecutionException {
     throw new MojoExecutionException(
         String.format(
-            "Blacklisted dependencies found: %s - please update the code base to no longer use these dependencies .",
+            "Blacklisted dependencies found: %s - add <allowBlacklistedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
+                + "properties to bypass.",
             blacklistedExcludingReactorProjects.mkString(", ")));
   }
 
