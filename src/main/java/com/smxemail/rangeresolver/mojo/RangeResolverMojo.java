@@ -85,7 +85,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "relaxedScopes")
   public String relaxedScopes = "";
 
-  @Parameter public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
+  @Parameter
+  public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
   private static final Pattern exclusionScopes =
       Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);

@@ -40,16 +40,20 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   public static final String KEY_FORMAT = "%s:%s";
 
-  @Component ScmManager scmManager;
+  @Component
+  ScmManager scmManager;
 
-  @Component MavenProjectHelper projectHelper;
+  @Component
+  MavenProjectHelper projectHelper;
 
   @Parameter(required = true, readonly = true, property = "project")
   MavenProject project;
 
-  @Parameter boolean commitChanges = false;
+  @Parameter
+  boolean commitChanges = false;
 
-  @Parameter boolean pushChanges = false;
+  @Parameter
+  boolean pushChanges = false;
 
   @Parameter(property = "allowUnlocked")
   String allowUnlocked = "";
