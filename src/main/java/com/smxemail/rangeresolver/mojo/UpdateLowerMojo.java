@@ -17,10 +17,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 
-@Mojo(
-    name = "update-lower-bounds",
-    defaultPhase = LifecyclePhase.INITIALIZE,
-    inheritByDefault = false)
+@Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
   @Override
@@ -33,26 +30,15 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver =
-              RangeResolverProcessor.parseRangeResolver(
-                  resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
           RepositoryResolver repositoryResolver =
-              RepositoryResolver.createRepositoryResolver(
-                  getLog()::info,
-                  getLog()::warn,
-                  localRepoDir,
-                  allowUnlocked,
-                  allowSnapshots,
-                  updateSnapshots);
+              RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
 
-          ResolutionResult resolutionResult =
-              repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
+          ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
-          Map<String, Resolved> resolvedThings =
-              resolutionResult.resolved().collect(Resolved.collectByKey);
+          Map<String, Resolved> resolvedThings = resolutionResult.resolved().collect(Resolved.collectByKey);
 
-          List<Resolve> updatedLowerBoundResolves =
-              rangeResolver.resolves().map(res -> resolveLowerBound(resolvedThings, res));
+          List<Resolve> updatedLowerBoundResolves = rangeResolver.resolves().map(res -> resolveLowerBound(resolvedThings, res));
 
           RangeResolver updated = rangeResolver.withResolves(updatedLowerBoundResolves);
 
@@ -79,8 +65,7 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
     try {
       return res.withRange(res.range().withLower(version));
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException(
-          String.format("Unable to resolve: %s - %s", res.key(), e.getMessage()), e);
+      throw new IllegalArgumentException(String.format("Unable to resolve: %s - %s", res.key(), e.getMessage()), e);
     }
   }
 }

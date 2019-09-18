@@ -15,9 +15,9 @@ alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 locked com.github.sviperll:adt4j:3.2 from smx3:smx3.bill-of-materials:2.1.1;
 locked com.google.auto.value:auto-value:1.5.2 from smx3:smx3.bill-of-materials:2.1.1;
 locked com.google.truth:truth:1.0 from com.smxemail:rangeresolver-maven-plugin:1.1.42;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:3.1.105 from smx3:smx3.bill-of-materials:3.0.16;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.1.68 from smx3:smx3.bill-of-materials:3.0.15;
-locked com.smxemail:com.smxemail.errorprone.checks:1.0.21 from smx3:smx3.bill-of-materials:3.0.14.2;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:3.2.5 from smx3:smx3.bill-of-materials:3.0.16;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.1.69 from smx3:smx3.bill-of-materials:3.0.16;
+locked com.smxemail:com.smxemail.errorprone.checks:1.0.22 from smx3:smx3.bill-of-materials:3.0.16;
 locked com.smxemail:com.smxemail.rangeresolver:1.1.23 from com.smxemail:rangeresolver-maven-plugin:1.1.42;
 locked com.theoryinpractise:quickcheckng:1.1.4 from smx3:smx3.bill-of-materials:2.1.1;
 locked io.repaint.maven:tiles-maven-plugin:2.15 from smx3:smx3.upstream.bill-of-materials:1.0.46;
@@ -27,4 +27,4 @@ locked org.apache.maven:maven-artifact:3.5.2 from smx3:smx3.bill-of-materials:2.
 locked org.immutables:value:2.7.5 from smx3:smx3.upstream.bill-of-materials:1.0.36;
 locked org.jacoco:jacoco-maven-plugin:0.8.4 from smx3:smx3.upstream.testing.bill-of-materials:1.0.19;
 locked org.jdom:jdom2:2.0.6 from smx3:smx3.bill-of-materials:2.1.1;
-locked org.testng:testng:6.14.3 from smx3:smx3.upstream.bill-of-materials:1.0.6;
+locked org.testng:testng:7.0.0 from smx3:smx3.upstream.testing.bill-of-materials:1.0.28;

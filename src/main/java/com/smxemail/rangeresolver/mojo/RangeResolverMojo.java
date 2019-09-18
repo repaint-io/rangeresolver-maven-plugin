@@ -45,8 +45,7 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 @Mojo(name = "resolve-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
-  public static final Namespace NAMESPACE =
-      Namespace.getNamespace("http://maven.apache.org/POM/4.0.0");
+  public static final Namespace NAMESPACE = Namespace.getNamespace("http://maven.apache.org/POM/4.0.0");
 
   public static final String BUILD = "build";
 
@@ -88,8 +87,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter
   public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
-  private static final Pattern exclusionScopes =
-      Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
+  @Parameter(property = "prettyPrintPomFormat")
+  public boolean prettyPrintPomFormat = false;
+
+  private static final Pattern exclusionScopes = Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
 
   @Override
   public void execute() throws MojoExecutionException {
@@ -101,47 +102,30 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver =
-              RangeResolverProcessor.parseRangeResolver(
-                  resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
           RepositoryResolver repositoryResolver =
-              RepositoryResolver.createRepositoryResolver(
-                  getLog()::info,
-                  getLog()::warn,
-                  localRepoDir,
-                  allowUnlocked,
-                  allowSnapshots,
-                  updateSnapshots);
+              RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
 
-          ResolutionResult resolvedThings =
-              repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
+          ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
           Predicate<Resolved> excludeReactorProjects = buildProjectKeysPredicate().negate();
 
-          List<Resolved> blacklistedExcludingReactorProjects =
-              resolvedThings.blacklisted().filter(excludeReactorProjects);
+          List<Resolved> blacklistedExcludingReactorProjects = resolvedThings.blacklisted().filter(excludeReactorProjects);
 
-          List<Resolved> deprecatedExcludingReactorProjects =
-              resolvedThings.deprecated().filter(excludeReactorProjects);
+          List<Resolved> deprecatedExcludingReactorProjects = resolvedThings.deprecated().filter(excludeReactorProjects);
 
-          List<Resolved> resolvedExcludingReactorProjects =
-              resolvedThings.resolved().filter(excludeReactorProjects);
+          List<Resolved> resolvedExcludingReactorProjects = resolvedThings.resolved().filter(excludeReactorProjects);
 
-          List<Resolved> lockedExcludingReactorProjects =
-              resolvedThings.locked().filter(excludeReactorProjects);
+          List<Resolved> lockedExcludingReactorProjects = resolvedThings.locked().filter(excludeReactorProjects);
 
           if (filterUnusedDependencies) {
             Predicate<Resolved> excludeUnusedDependencies = buildProjectDependenciesPredicate();
 
-            resolvedExcludingReactorProjects =
-                resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            lockedExcludingReactorProjects =
-                lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            deprecatedExcludingReactorProjects =
-                deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            blacklistedExcludingReactorProjects =
-                blacklistedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            resolvedExcludingReactorProjects = resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            lockedExcludingReactorProjects = lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            deprecatedExcludingReactorProjects = deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
+            blacklistedExcludingReactorProjects = blacklistedExcludingReactorProjects.filter(excludeUnusedDependencies);
           }
 
           if (!allowBlacklistedDependencies && !blacklistedExcludingReactorProjects.isEmpty()) {
@@ -196,20 +180,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private Set<File> findPomFiles(File baseDir) throws IOException {
-    try (Stream<Path> stream =
-        Files.find(
-            baseDir.toPath(),
-            10,
-            (path, attr) -> path.toFile().getName().equals("pom.xml") && attr.isRegularFile())) {
+    try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> path.toFile().getName().equals("pom.xml") && attr.isRegularFile())) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
   }
 
   private Predicate<Resolved> buildProjectDependenciesPredicate() {
     Set<String> usedDependencyKeys =
-        mavenSession
-            .getAllProjects()
-            .stream()
+        mavenSession.getAllProjects().stream()
             .flatMap(
                 p -> {
                   List<String> keys =
@@ -220,17 +198,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
                   DependencyManagement dependencyManagement = p.getDependencyManagement();
                   if (dependencyManagement != null) {
-                    keys =
-                        keys.appendAll(
-                            resolveDependencyKeys(
-                                List.ofAll(dependencyManagement.getDependencies())));
+                    keys = keys.appendAll(resolveDependencyKeys(List.ofAll(dependencyManagement.getDependencies())));
                   }
 
                   PluginManagement pluginManagement = p.getPluginManagement();
                   if (pluginManagement != null) {
-                    keys =
-                        keys.appendAll(
-                            resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
+                    keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
                   }
 
                   return keys.toJavaStream().distinct();
@@ -247,9 +220,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private List<String> resolvePluginKeys(List<Plugin> plugins) {
     return plugins.flatMap(
         plugin -> {
-          List<String> append =
-              resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
-                  .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+          List<String> append = resolveDependencyKeys(List.ofAll(plugin.getDependencies())).append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
 
           if (plugin.getArtifactId().equals("tiles-maven-plugin")) {
             append = append.appendAll(extractTileKeysFromConfiguration(plugin));
@@ -264,11 +235,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       Xpp3Dom tiles = config.getChild("tiles");
       if (tiles != null) {
         return List.of(tiles.getChildren())
-                   .map(
-                       tile -> {
-                         String[] parts = tile.getValue().split(":");
-                         return keyFor(parts[0], parts[1]);
-                       });
+            .map(
+                tile -> {
+                  String[] parts = tile.getValue().split(":");
+                  return keyFor(parts[0], parts[1]);
+                });
       }
     }
 
@@ -276,8 +247,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private Predicate<Resolved> buildProjectKeysPredicate() {
-    Set<String> reactorKeys =
-        mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
+    Set<String> reactorKeys = mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
     return r -> reactorKeys.contains(r.key());
   }
 
@@ -335,14 +305,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       }
       pomFile.renameTo(originalPomFile);
 
-      String relativePomFileName =
-          newPomFile.getPath().substring(project.getBasedir().getPath().length() + 1);
+      String relativePomFileName = newPomFile.getPath().substring(project.getBasedir().getPath().length() + 1);
       getLog().info("Rewriting dependencies in " + relativePomFileName);
 
-      Format format =
-          Format.getPrettyFormat()
-              .setLineSeparator(LineSeparator.SYSTEM)
-              .setExpandEmptyElements(false);
+      Format format = getPomRewriteFormat();
 
       new XMLOutputter(format).output(pomDocument, new FileWriter(newPomFile));
 
@@ -351,8 +317,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewritePomBuild(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+  private Format getPomRewriteFormat() {
+    if (prettyPrintPomFormat) {
+      return Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM).setExpandEmptyElements(false);
+    } else {
+      return Format.getRawFormat().setLineSeparator(LineSeparator.SYSTEM);
+    }
+  }
+
+  private void rewritePomBuild(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
     Element build = projectElem.getChild(BUILD, NAMESPACE);
     if (build != null) {
       rewritePomPlugins(resolvedItems, reactorKeys, build);
@@ -364,8 +337,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewritePomPlugins(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element build) {
+  private void rewritePomPlugins(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element build) {
     Element plugins = build.getChild(PLUGINS, NAMESPACE);
     if (plugins != null) {
       for (Element plugin : plugins.getChildren()) {
@@ -411,16 +383,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private void rewriteDependencyManagement(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+  private void rewriteDependencyManagement(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
     Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
     if (dependencyManagement != null) {
       rewritePomDependencies(resolvedItems, reactorKeys, dependencyManagement);
     }
   }
 
-  private void rewritePomDependencies(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+  private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
 
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
     if (dependencies != null) {
@@ -470,17 +440,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   private Set<String> resolveReactorKeys() {
     // get keys for projects in the reactor so that we can skip re-resolving them
-    return mavenSession
-        .getAllProjects()
-        .stream()
-        .map(project -> keyFor(project.getGroupId(), project.getArtifactId()))
-        .collect(Collectors.toSet());
+    return mavenSession.getAllProjects().stream().map(project -> keyFor(project.getGroupId(), project.getArtifactId())).collect(Collectors.toSet());
   }
 
   private String keyFor(Element dependency) {
-    return keyFor(
-        dependency.getChildText(GROUP_ID, NAMESPACE),
-        dependency.getChildText(ARTIFACT_ID, NAMESPACE));
+    return keyFor(dependency.getChildText(GROUP_ID, NAMESPACE), dependency.getChildText(ARTIFACT_ID, NAMESPACE));
   }
 
   private String keyFor(String groupId, String artifactId) {

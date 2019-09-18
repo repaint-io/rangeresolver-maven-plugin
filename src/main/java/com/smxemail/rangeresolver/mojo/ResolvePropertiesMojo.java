@@ -31,9 +31,7 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver =
-            RangeResolverProcessor.parseRangeResolver(
-                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+        RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
         if (!allowDeprecatedDependencies && !rangeResolver.deprecated().isEmpty()) {
           throwDeprecationException(rangeResolver.deprecated());
@@ -41,9 +39,7 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
         }
 
         List<Resolved> resolvedProjects =
-            mavenSession
-                .getAllProjects()
-                .stream()
+            mavenSession.getAllProjects().stream()
                 .map(
                     proj ->
                         Resolved.of(

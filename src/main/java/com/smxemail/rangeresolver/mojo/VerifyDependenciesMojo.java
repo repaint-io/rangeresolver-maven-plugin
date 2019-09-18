@@ -40,9 +40,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver =
-            parseRangeResolver(
-                resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+        RangeResolver rangeResolver = parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
         Predicate<Dependency> isUndeclared = declaredDependency(rangeResolver).negate();
         Set<Dependency> undeclared = getDependencies(currentProject, isUndeclared);
 
@@ -56,8 +54,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private Set<Dependency> getDependencies(
-      MavenProject mavenProject, Predicate<Dependency> isUndeclared) {
+  private Set<Dependency> getDependencies(MavenProject mavenProject, Predicate<Dependency> isUndeclared) {
     Set<Dependency> undeclared = new TreeSet<>(Comparator.comparing(this::keyForDependency));
     DependencyManagement dependencyManagement = mavenProject.getDependencyManagement();
     if (dependencyManagement != null) {
@@ -67,19 +64,14 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     return undeclared;
   }
 
-  private void processVerification(File deps, MavenProject mavenProject, Set<Dependency> undeclared)
-      throws MojoExecutionException {
+  private void processVerification(File deps, MavenProject mavenProject, Set<Dependency> undeclared) throws MojoExecutionException {
     if (!undeclared.isEmpty()) {
       getLog().error(String.format("Undeclared dependencies found in %s", gav(mavenProject)));
       for (Dependency dependency : undeclared) {
         getLog().error(String.format("Undeclared dependency: %s", gav(dependency)));
       }
 
-      getLog()
-          .warn(
-              String.format(
-                  "Add the following script to the file %s:\n\n%s\n",
-                  deps.getPath(), generateSource(undeclared)));
+      getLog().warn(String.format("Add the following script to the file %s:\n\n%s\n", deps.getPath(), generateSource(undeclared)));
 
       if (strictDependency) {
         throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());
@@ -87,18 +79,12 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     }
   }
 
-  private Set<Dependency> filterDependencies(
-      Predicate<Dependency> isDeclaredDependency, List<Dependency> dependencies) {
+  private Set<Dependency> filterDependencies(Predicate<Dependency> isDeclaredDependency, List<Dependency> dependencies) {
     return dependencies.stream().filter(isDeclaredDependency).collect(Collectors.toSet());
   }
 
   private Predicate<Dependency> declaredDependency(RangeResolver rangeResolver) {
-    Set<String> keys =
-        rangeResolver
-            .resolved()
-            .appendAll(rangeResolver.locked())
-            .map(Resolved::key)
-            .collect(Collectors.toSet());
+    Set<String> keys = rangeResolver.resolved().appendAll(rangeResolver.locked()).map(Resolved::key).collect(Collectors.toSet());
     return dependency -> keys.contains(keyForDependency(dependency));
   }
 
@@ -109,10 +95,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
   private String generateSource(Set<Dependency> dependencies) {
     StringBuilder sb = new StringBuilder();
     for (Dependency dependency : dependencies) {
-      sb.append(
-          String.format(
-              "     resolve highest %s:%s;\n",
-              keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
+      sb.append(String.format("     resolve highest %s:%s;\n", keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
     }
     return sb.toString();
   }
