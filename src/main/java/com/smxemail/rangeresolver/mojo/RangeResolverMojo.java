@@ -87,6 +87,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter
   public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
+  @Parameter(property = "prettyPrintPomFormat")
+  public boolean prettyPrintPomFormat = false;
+
   private static final Pattern exclusionScopes = Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
 
   @Override
@@ -305,12 +308,20 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       String relativePomFileName = newPomFile.getPath().substring(project.getBasedir().getPath().length() + 1);
       getLog().info("Rewriting dependencies in " + relativePomFileName);
 
-      Format format = Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM).setExpandEmptyElements(false);
+      Format format = getPomRewriteFormat();
 
       new XMLOutputter(format).output(pomDocument, new FileWriter(newPomFile));
 
     } catch (IOException | JDOMException e) {
       throw new RuntimeException(e.getMessage(), e);
+    }
+  }
+
+  private Format getPomRewriteFormat() {
+    if (prettyPrintPomFormat) {
+      return Format.getPrettyFormat().setLineSeparator(LineSeparator.SYSTEM).setExpandEmptyElements(false);
+    } else {
+      return Format.getRawFormat().setLineSeparator(LineSeparator.SYSTEM);
     }
   }
 
