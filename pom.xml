@@ -4,7 +4,7 @@
 
   <groupId>com.smxemail</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>1.1.44-SNAPSHOT</version>
+  <version>1.1.45-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
@@ -25,18 +25,24 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>[1.1.23]</version>
-      <exclusions />
+      <version>[1.1.24]</version>
+      <exclusions></exclusions>
     </dependency>
     <dependency>
       <groupId>io.vavr</groupId>
       <artifactId>vavr</artifactId>
-      <version>0.9.2</version>
+      <version>[1.0.0-alpha-3]</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
-      <version>[4.7.2]</version>
+      <version>[4.8-1]</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -115,13 +121,13 @@
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
-      <version>1.0</version>
+      <version>1.0.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.testng</groupId>
       <artifactId>testng</artifactId>
-      <version>7.0.0</version>
+      <version>7.1.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -131,12 +137,12 @@
       <plugin>
         <groupId>io.repaint.maven</groupId>
         <artifactId>tiles-maven-plugin</artifactId>
-        <version>2.15</version>
+        <version>2.16</version>
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.1.69]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.5]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.3]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.24]</tile>
           </tiles>
         </configuration>
       </plugin>

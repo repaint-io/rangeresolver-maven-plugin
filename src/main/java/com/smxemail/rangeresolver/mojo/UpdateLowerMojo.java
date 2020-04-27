@@ -1,7 +1,5 @@
 package com.smxemail.rangeresolver.mojo;
 
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
-
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolve;
@@ -9,13 +7,16 @@ import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import io.vavr.collection.List;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Map;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
+
+import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 
 @Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
