@@ -1,6 +1,6 @@
 package com.smxemail.rangeresolver.mojo;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.smxemail.rangeresolver.mojo.VerifyDependenciesMojo.expandVersionToUpperRange;
