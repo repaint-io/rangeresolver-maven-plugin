@@ -1,5 +1,15 @@
 package com.smxemail.rangeresolver.mojo;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import com.google.common.base.MoreObjects;
 import com.smxemail.rangeresolver.api.Resolved;
 import io.vavr.collection.List;
@@ -22,18 +32,7 @@ import org.apache.maven.scm.repository.ScmRepository;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public abstract class AbstractRangeResolverMojo extends AbstractMojo {
-
   public static final String GAV_FORMAT = "%s:%s:%s";
 
   public static final String WILDCARD = "*";
@@ -95,7 +94,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
       getLog().info("Project is not being released, or commits are disabled, skipping commit: " + message);
     } else {
       try {
-        String connectionUrl = MoreObjects.firstNonNull(project.getScm().getConnection(), project.getScm().getDeveloperConnection());
+        String connectionUrl =
+            MoreObjects.firstNonNull(project.getScm().getConnection(), project.getScm().getDeveloperConnection());
         ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
         ScmProviderRepository providerRepo = repository.getProviderRepository();
         providerRepo.setPushChanges(pushChanges);
@@ -111,7 +111,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
           } else {
             CheckInScmResult checkinResult = scmManager.checkIn(repository, scmFileSet, message);
             if (!checkinResult.isSuccess()) {
-              throw new MojoExecutionException(String.format("Unable to commit dependency changes to repository %s", connectionUrl));
+              throw new MojoExecutionException(
+                  String.format("Unable to commit dependency changes to repository %s", connectionUrl));
             }
           }
         } else {
@@ -132,23 +133,20 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   protected void throwBlacklistedException(List<Resolved> blacklistedExcludingReactorProjects) throws MojoExecutionException {
-    throw new MojoExecutionException(
-        String.format(
-            "Blacklisted dependencies found: %s - add <allowBlacklistedDependencies>true</allowBlacklistedDependencies> to your pom.xml's "
-                + "properties to bypass.",
-            blacklistedExcludingReactorProjects.mkString(", ")));
+    throw new MojoExecutionException(String.format(
+        "Blacklisted dependencies found: %s - add <allowBlacklistedDependencies>true</allowBlacklistedDependencies> to your pom.xml's "
+            + "properties to bypass.",
+        blacklistedExcludingReactorProjects.mkString(", ")));
   }
 
   protected void throwDeprecationException(List<Resolved> deprecatedExcludingReactorProjects) throws MojoExecutionException {
-    throw new MojoExecutionException(
-        String.format(
-            "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
-                + "properties to bypass.",
-            deprecatedExcludingReactorProjects.mkString(", ")));
+    throw new MojoExecutionException(String.format(
+        "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
+            + "properties to bypass.",
+        deprecatedExcludingReactorProjects.mkString(", ")));
   }
 
   private boolean containsDepChange(StatusScmResult statusScmResult, Set<File> files) {
-
     Set<String> fileNames = files.stream().map(f -> f.getName()).collect(Collectors.toSet());
     Set<String> scmPaths = statusScmResult.getChangedFiles().stream().map(f -> f.getPath()).collect(Collectors.toSet());
 
@@ -156,7 +154,8 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   protected String gav(Dependency undeclaredDependency) {
-    return String.format(GAV_FORMAT, undeclaredDependency.getGroupId(), undeclaredDependency.getArtifactId(), undeclaredDependency.getVersion());
+    return String.format(
+        GAV_FORMAT, undeclaredDependency.getGroupId(), undeclaredDependency.getArtifactId(), undeclaredDependency.getVersion());
   }
 
   protected String gav(MavenProject mavenProject) {
