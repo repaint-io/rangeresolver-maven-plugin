@@ -2,7 +2,7 @@
 repository http://nexus.smxemail.com/nexus/content/repositories/releases/;
 repository http://nexus.smxemail.com/nexus/content/groups/public/ as public;
 
-import smx3:smx3.bill-of-materials:3.2.36;
+import smx3:smx3.bill-of-materials:3.2.37;
 
 allow unlocked /^.*smx.*$/;
 
