@@ -420,9 +420,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             } else {
               boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
               if (!hasExistingExclusions) {
-                Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
-
                 if (pred.test(depKey)) {
+                  Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
+
                   for (String exclusionSpec : this.testExclusions) {
                     String[] parts = exclusionSpec.split(":");
 
@@ -431,8 +431,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                     exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(parts[1]));
                     exclusions.addContent(exclusion);
                   }
+                  dependency.addContent(exclusions);
                 }
-                dependency.addContent(exclusions);
               }
             }
           }
