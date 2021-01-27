@@ -13,16 +13,15 @@ resolve highest io.vavr:vavr:[1.0.0-alpha-3,2.0.0) via public;
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 
-resolved com.google.truth:truth:1.1.2 from com.smxemail:rangeresolver-maven-plugin:1.1.48;
-resolved com.smxemail:com.smxemail.rangeresolver:1.1.27 from com.smxemail:rangeresolver-maven-plugin:1.1.48;
-
 locked com.github.sviperll:adt4j:3.2 from smx3:smx3.bill-of-materials:2.1.1;
 locked com.google.auto.value:auto-value:1.5.2 from smx3:smx3.bill-of-materials:2.1.1;
 locked com.google.guava:failureaccess:1.0.1 from smx3:smx3.upstream.bill-of-materials:1.0.46;
+locked com.google.truth:truth:1.1.2 from com.smxemail:rangeresolver-maven-plugin:1.1.48;
 locked com.smxemail.tiles:com.smxemail.tiles.enforcements:3.2.56 from smx3:smx3.bill-of-materials:3.2.75;
 locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.17 from smx3:smx3.bill-of-materials:3.2.78;
 locked com.smxemail:com.smxemail.datatype.annotations:1.0.2 from smx3:smx3.bill-of-materials:3.2.76;
 locked com.smxemail:com.smxemail.errorprone.checks:1.0.32 from smx3:smx3.bill-of-materials:3.2.76;
+locked com.smxemail:com.smxemail.rangeresolver:1.1.27 from com.smxemail:rangeresolver-maven-plugin:1.1.48;
 locked com.theoryinpractise:quickcheckng:1.1.4 from smx3:smx3.bill-of-materials:2.1.1;
 locked io.repaint.maven:tiles-maven-plugin:2.19 from smx3:smx3.upstream.bill-of-materials:1.3.24;
 locked io.vavr:vavr:1.0.0-alpha-3 from com.smxemail:rangeresolver-maven-plugin:1.1.44;
