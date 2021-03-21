@@ -25,7 +25,7 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>[1.1.27]</version>
+      <version>[1.1.28]</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>org.antlr</groupId>
       <artifactId>antlr4-runtime</artifactId>
-      <version>[4.9.1]</version>
+      <version>[4.9.2]</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -126,8 +126,14 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.7.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.7.0</version>
+      <version>5.7.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -147,8 +153,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.17]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.56]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.18]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.66]</tile>
           </tiles>
         </configuration>
       </plugin>
