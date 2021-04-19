@@ -1,18 +1,9 @@
 package com.smxemail.rangeresolver.mojo;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
 import com.google.common.base.MoreObjects;
-import com.smxemail.rangeresolver.api.Resolved;
+
 import io.vavr.collection.List;
+
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
@@ -31,6 +22,18 @@ import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.repository.ScmRepository;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
+
+import com.smxemail.rangeresolver.api.Resolved;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   public static final String GAV_FORMAT = "%s:%s:%s";

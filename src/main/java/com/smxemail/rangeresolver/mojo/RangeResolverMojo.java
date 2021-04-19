@@ -1,30 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
-import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.ResolutionResult;
-import com.smxemail.rangeresolver.api.Resolved;
-import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
-import com.smxemail.rangeresolver.lang.RepositoryResolver;
 import io.vavr.collection.List;
+
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
@@ -42,6 +19,31 @@ import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.LineSeparator;
 import org.jdom2.output.XMLOutputter;
+
+import com.smxemail.rangeresolver.api.RangeResolver;
+import com.smxemail.rangeresolver.api.ResolutionResult;
+import com.smxemail.rangeresolver.api.Resolved;
+import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
+import com.smxemail.rangeresolver.lang.RepositoryResolver;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
 
 @Mojo(name = "resolve-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class RangeResolverMojo extends AbstractRangeResolverMojo {

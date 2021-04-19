@@ -1,15 +1,17 @@
 package com.smxemail.rangeresolver.mojo;
 
+import io.vavr.collection.List;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.ResolutionResult;
 import com.smxemail.rangeresolver.api.Resolve;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
-import io.vavr.collection.List;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 import java.io.FileReader;
@@ -20,7 +22,6 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 
 @Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
-
   @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
@@ -31,9 +32,10 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
-          RepositoryResolver repositoryResolver =
-              RepositoryResolver.createRepositoryResolver(getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
+          RangeResolver rangeResolver =
+              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(
+              getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
 
           ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
