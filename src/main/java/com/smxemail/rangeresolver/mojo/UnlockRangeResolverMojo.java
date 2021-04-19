@@ -1,24 +1,26 @@
 package com.smxemail.rangeresolver.mojo;
 
+import io.vavr.collection.List;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RangeResolverProcessor;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
-import io.vavr.collection.List;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 import static io.vavr.API.List;
+
+import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 
 @Mojo(name = "unlock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
-
   @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
@@ -27,7 +29,8 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
         try {
           getLog().info("Unlocking resolved ranges...");
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver = RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver =
+              RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
           List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 

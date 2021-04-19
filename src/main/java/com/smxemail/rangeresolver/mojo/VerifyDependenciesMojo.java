@@ -1,7 +1,5 @@
 package com.smxemail.rangeresolver.mojo;
 
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.Resolved;
 import org.apache.maven.artifact.versioning.ArtifactVersion;
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
@@ -11,6 +9,9 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+
+import com.smxemail.rangeresolver.api.RangeResolver;
+import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
 import java.io.FileReader;
@@ -23,11 +24,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
+
 import static java.util.Objects.requireNonNull;
 
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.INITIALIZE)
 public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
-
   @Parameter(property = "strictDependency", defaultValue = "true")
   boolean strictDependency = true;
 
@@ -36,7 +37,6 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     MavenProject currentProject = mavenSession.getCurrentProject();
     File deps = resolveDepsFile();
     if (deps.exists()) {
-
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
@@ -95,7 +95,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
   private String generateSource(Set<Dependency> dependencies) {
     StringBuilder sb = new StringBuilder();
     for (Dependency dependency : dependencies) {
-      sb.append(String.format("     resolve highest %s:%s;\n", keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
+      sb.append(String.format(
+          "     resolve highest %s:%s;\n", keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
     }
     return sb.toString();
   }
