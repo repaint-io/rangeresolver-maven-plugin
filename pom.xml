@@ -149,12 +149,12 @@
       <plugin>
         <groupId>io.repaint.maven</groupId>
         <artifactId>tiles-maven-plugin</artifactId>
-        <version>2.25</version>
+        <version>2.26</version>
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.34]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.105]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.39]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.111]</tile>
           </tiles>
         </configuration>
       </plugin>
