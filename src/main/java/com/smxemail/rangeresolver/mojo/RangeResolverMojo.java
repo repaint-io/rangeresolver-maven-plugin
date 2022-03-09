@@ -331,7 +331,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     if (build != null) {
       rewritePomPlugins(resolvedItems, reactorKeys, build);
       rewriteTiles(resolvedItems, build);
-      Element pluginManagement = projectElem.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
+      Element pluginManagement = build.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
       if (pluginManagement != null) {
         rewritePomPlugins(resolvedItems, reactorKeys, pluginManagement);
       }
