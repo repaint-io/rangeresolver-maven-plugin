@@ -1,6 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
 import io.vavr.collection.HashSet;
+import io.vavr.control.Option;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -47,7 +48,7 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
                                                       proj.getGroupId(),
                                                       proj.getArtifactId(),
                                                       proj.getVersion(),
-                                                      "",
+                                                      Option.none(),
                                                       proj.getArtifactId() + ".version",
                                                       Range.fixed(project.getVersion()),
                                                       ResolvedType.RESOLVED))
