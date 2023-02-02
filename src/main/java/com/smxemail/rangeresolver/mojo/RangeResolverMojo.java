@@ -7,10 +7,13 @@ import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -83,6 +86,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String SCOPE = "scope";
 
+  @Component
+  private RepositorySystem repositorySystem;
+
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
+  RepositorySystemSession repositorySystemSession;
+
   @Parameter(property = "relaxedScopes")
   public String relaxedScopes = "";
 
@@ -105,13 +114,18 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         getLog().info("Updating resolved ranges...");
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
-          String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(
-              getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
+              repositorySystem,
+              repositorySystemSession,
+              getLog()::info,
+              getLog()::warn,
+              allowUnlocked,
+              allowSnapshots,
+              updateSnapshots);
 
           ResolutionResult resolvedThings = repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
