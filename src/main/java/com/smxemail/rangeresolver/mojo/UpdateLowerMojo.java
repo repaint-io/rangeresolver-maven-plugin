@@ -3,8 +3,12 @@ package com.smxemail.rangeresolver.mojo;
 import io.vavr.collection.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
 
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.ResolutionResult;
@@ -22,6 +26,12 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 
 @Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
+  @Component
+  private RepositorySystem repositorySystem;
+
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
+  RepositorySystemSession repositorySystemSession;
+
   @Override
   public void execute() throws MojoExecutionException {
     if (project.isExecutionRoot()) {
@@ -35,7 +45,13 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
           RangeResolver rangeResolver =
               RangeResolverProcessor.parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
           RepositoryResolver repositoryResolver = RepositoryResolver.createRepositoryResolver(
-              getLog()::info, getLog()::warn, localRepoDir, allowUnlocked, allowSnapshots, updateSnapshots);
+              repositorySystem,
+              repositorySystemSession,
+              getLog()::info,
+              getLog()::warn,
+              allowUnlocked,
+              allowSnapshots,
+              updateSnapshots);
 
           ResolutionResult resolutionResult = repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
 
