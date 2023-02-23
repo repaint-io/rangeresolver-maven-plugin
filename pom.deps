@@ -1,10 +1,10 @@
 // SMX Nexus Repository
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 
-import smx3:smx3.bill-of-materials:3.4.20;
+import smx3:smx3.bill-of-materials:3.4.29;
 
 //allow unlocked /^.*smx.*$/;
-resolve highest com.smxemail:com.smxemail.rangeresolver:[1.1.36,2.0.0);
+resolve highest com.smxemail:com.smxemail.rangeresolver:[1.1.37,2.0.0);
 resolve highest com.google.truth:truth:[1.1.3,2.0) via public;
 resolve highest io.vavr:vavr:[1.0.0-alpha-4,2.0.0) via public;
 
@@ -15,19 +15,21 @@ locked com.github.sviperll:adt4j:3.2;
 locked com.google.auto.value:auto-value:1.10.1;
 locked com.google.guava:failureaccess:1.0.1;
 locked com.google.truth:truth:1.1.3;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:3.2.142;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.62;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:3.2.147;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.66;
 locked com.smxemail:com.smxemail.datatype.annotations:1.0.3;
 locked com.smxemail:com.smxemail.errorprone.checks:1.0.37;
-locked com.smxemail:com.smxemail.rangeresolver:1.1.36;
+locked com.smxemail:com.smxemail.rangeresolver:1.1.37;
 locked io.repaint.maven:tiles-maven-plugin:2.34;
 locked io.vavr:vavr:1.0.0-alpha-4;
 locked org.antlr:antlr4-runtime:4.9.3;
-locked org.apache.maven.plugins:maven-assembly-plugin:3.4.2;
+locked org.apache.maven.plugins:maven-assembly-plugin:3.5.0;
+locked org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M9;
 locked org.apache.maven.plugins:maven-install-plugin:3.1.0;
 locked org.apache.maven.plugins:maven-jar-plugin:3.3.0;
 locked org.apache.maven.plugins:maven-source-plugin:3.2.1;
-locked org.apache.maven:maven-artifact:3.8.7;
+locked org.apache.maven.plugins:maven-surefire-plugin:3.0.0-M9;
+locked org.apache.maven:maven-artifact:3.9.0;
 locked org.codehaus.mojo:build-helper-maven-plugin:3.3.0;
 locked org.immutables:value:2.9.3;
 locked org.jacoco:jacoco-maven-plugin:0.8.8;
