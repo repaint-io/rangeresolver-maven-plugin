@@ -61,6 +61,7 @@
       <groupId>org.apache.maven.scm</groupId>
       <artifactId>maven-scm-api</artifactId>
       <version>1.9.5</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.maven.scm</groupId>
