@@ -224,6 +224,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
               }
 
+              if (p.getParent() != null) {
+                keys = keys.append(keyFor(p.getParent().getGroupId(), p.getParent().getArtifactId()));
+              }
+
               return keys.toJavaStream().distinct();
             })
             .collect(Collectors.toSet());
