@@ -18,7 +18,7 @@ resolve highest org.apache.maven.shared:maven-filtering:[3.3.2,4.0.0) via centra
 resolve highest org.apache.maven.scm:maven-scm-manager-plexus:[1.13.0,2.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.scm:maven-scm-api:[1.13.0,2.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest com.google.truth:truth:[1.4.2,2.0) via central;
-resolve highest io.vavr:vavr:[1.0.0-alpha-4,2.0.0) via central;
+resolve highest io.vavr:vavr:[0.10.4,1.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
@@ -33,7 +33,7 @@ locked com.smxemail:com.smxemail.datatype.annotations:1.0.4;
 locked com.smxemail:com.smxemail.errorprone.checks:1.0.37;
 locked com.smxemail:com.smxemail.rangeresolver:1.1.41;
 locked io.repaint.maven:tiles-maven-plugin:2.40;
-locked io.vavr:vavr:1.0.0-alpha-4;
+locked io.vavr:vavr:0.10.4;
 locked org.antlr:antlr4-runtime:4.9.3;
 locked org.apache.maven.plugins:maven-assembly-plugin:3.7.1;
 locked org.apache.maven.plugins:maven-failsafe-plugin:3.2.5;
