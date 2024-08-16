@@ -1,4 +1,4 @@
-package com.smxemail.rangeresolver.mojo;
+ package com.smxemail.rangeresolver.mojo;
 
 import io.vavr.collection.List;
 
@@ -140,7 +140,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           List<Resolved> lockedExcludingReactorProjects = resolvedThings.locked().filter(excludeReactorProjects);
 
           if (filterUnusedDependencies) {
-            Predicate<Resolved> excludeUnusedDependencies = buildProjectDependenciesPredicate();
+            Predicate<Resolved> excludeUnusedDependencies = buildProjectDependenciesPredicate().or(buildProjectPropertyPredicate());
 
             resolvedExcludingReactorProjects = resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
             lockedExcludingReactorProjects = lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
@@ -199,9 +199,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private Set<File> findPomFiles(File baseDir) throws IOException {
     try (
         Stream<Path> stream =
-            Files.find(baseDir.toPath(), 10, (path, attr) -> path.toFile().getName().equals("pom.xml") && attr.isRegularFile())) {
+            Files.find(baseDir.toPath(), 10, (path, attr) -> {
+              String name = path.toFile().getName();
+              return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
+            })) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
+  }
+
+  private Predicate<Resolved> buildProjectPropertyPredicate() {
+    return r -> project.getProperties().containsKey(r.propertyName());
   }
 
   private Predicate<Resolved> buildProjectDependenciesPredicate() {
@@ -286,6 +293,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       rewritePomBuild(resolvedItems, reactorKeys, projectElem);
       rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
+      rewritePomProperties(resolvedItems, reactorKeys, projectElem);
 
       // Remove the pom.deps.sha1 property
       Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
@@ -409,6 +417,19 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
   }
 
+  private void rewritePomProperties(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+    Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
+    if (properties != null) {
+      for (Element property : properties.getChildren()) {
+        String depKey = keyFor(resolvedItems, property);
+        if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
+          Resolved resolved = resolvedItems.get(depKey);
+          property.setText(String.format("%s", resolved.version()));
+        }
+      }
+    }
+  }
+
   private void rewritePomDependencies(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
     Predicate<String> pred = testExlusionsPredicate();
     Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
@@ -496,4 +517,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private String keyFor(String groupId, String artifactId) {
     return String.format(KEY_FORMAT, groupId, artifactId);
   }
+
+  private String keyFor(Map<String, Resolved> resolvedItems, Element property) {
+    String name = property.getName();
+    for (Resolved resolved : resolvedItems.values()) {
+      if (name.equals(resolved.propertyName())) {
+        return resolved.key();
+      }
+    }
+    return "";
+  }
+
 }
