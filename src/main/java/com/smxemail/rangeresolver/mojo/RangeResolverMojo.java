@@ -199,7 +199,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private Set<File> findPomFiles(File baseDir) throws IOException {
     try (
         Stream<Path> stream =
-            Files.find(baseDir.toPath(), 10, (path, attr) -> path.toFile().getName().equals("pom.xml") && attr.isRegularFile())) {
+            Files.find(baseDir.toPath(), 10, (path, attr) -> {
+              String name = path.toFile().getName();
+              return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
+            })) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
   }
