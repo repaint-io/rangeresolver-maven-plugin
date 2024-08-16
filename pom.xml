@@ -20,7 +20,7 @@
     <relaxedScopes>.*</relaxedScopes>
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
-    <version.maven>3.9.2</version.maven>
+    <version.maven>3.9.8</version.maven>
   </properties>
 
   <dependencies>
@@ -98,7 +98,7 @@
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-artifact</artifactId>
-      <version>3.9.7</version>
+      <version>3.9.8</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -194,25 +194,25 @@
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
-      <version>1.4.2</version>
+      <version>1.4.4</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.10.2</version>
+      <version>5.11.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.10.2</version>
+      <version>5.11.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>5.10.2</version>
+      <version>5.11.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -226,8 +226,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.92]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[3.2.227]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.97]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.0.107]</tile>
           </tiles>
         </configuration>
       </plugin>
