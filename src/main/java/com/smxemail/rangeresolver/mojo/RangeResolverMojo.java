@@ -320,6 +320,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           rewritePomBuild(resolvedItems, reactorKeys, profile);
           rewriteDependencyManagement(resolvedItems, reactorKeys, profile);
           rewritePomDependencies(resolvedItems, reactorKeys, profile);
+          rewritePomProperties(resolvedItems, reactorKeys, profile);
         }
       }
 
