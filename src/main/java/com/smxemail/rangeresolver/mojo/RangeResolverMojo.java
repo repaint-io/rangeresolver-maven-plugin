@@ -1,9 +1,8 @@
- package com.smxemail.rangeresolver.mojo;
+package com.smxemail.rangeresolver.mojo;
 
 import io.vavr.collection.List;
 
 import org.apache.maven.model.Dependency;
-import org.apache.maven.model.DependencyManagement;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -197,12 +196,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   }
 
   private Set<File> findPomFiles(File baseDir) throws IOException {
-    try (
-        Stream<Path> stream =
-            Files.find(baseDir.toPath(), 10, (path, attr) -> {
-              String name = path.toFile().getName();
-              return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
-            })) {
+    try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
+      String name = path.toFile().getName();
+      return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
+    })) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
   }
@@ -220,11 +217,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                                       .appendAll(List.ofAll(retainUnusedDependencies))
                                       .appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())))
                                       .appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
-
-              DependencyManagement dependencyManagement = p.getDependencyManagement();
-              if (dependencyManagement != null) {
-                keys = keys.appendAll(resolveDependencyKeys(List.ofAll(dependencyManagement.getDependencies())));
-              }
 
               PluginManagement pluginManagement = p.getPluginManagement();
               if (pluginManagement != null) {
@@ -528,5 +520,4 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
     return "";
   }
-
 }
