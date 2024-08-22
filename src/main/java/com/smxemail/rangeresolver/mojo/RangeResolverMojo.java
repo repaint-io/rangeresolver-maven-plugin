@@ -465,7 +465,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
                         // Replace version
                         Element version = path.getChild(VERSION, NAMESPACE);
-                        version.setText(String.format("[%s]", resolved.version()));
+                        version.setText(resolved.version());
                     }
                 }
             }
