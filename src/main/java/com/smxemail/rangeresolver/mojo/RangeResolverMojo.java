@@ -85,6 +85,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String SCOPE = "scope";
 
+  public static final String CONFIGURATION = "configuration";
+
+  public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
+
   @Component
   private RepositorySystem repositorySystem;
 
@@ -371,6 +375,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             version.setText(String.format("%s", resolved.version()));
           }
 
+          // Replace maven-compiler-plugin annotation paths
+          if ("org.apache.maven.plugins:maven-compiler-plugin".equals(pluginKey)) {
+            rewriteAnnotationPaths(resolvedItems, reactorKeys, plugin);
+          }
           // Replace plugin dependencies
           rewritePomDependencies(resolvedItems, reactorKeys, plugin);
         }
@@ -384,7 +392,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
       for (Element plugin : plugins.getChildren()) {
         String pluginKey = keyFor(plugin);
         if ("io.repaint.maven:tiles-maven-plugin".equals(pluginKey)) {
-          Element configuration = plugin.getChild("configuration", NAMESPACE);
+          Element configuration = plugin.getChild(CONFIGURATION, NAMESPACE);
           if (configuration != null) {
             Element tiles = configuration.getChild("tiles", NAMESPACE);
             if (tiles != null) {
@@ -418,6 +426,25 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
           Resolved resolved = resolvedItems.get(depKey);
           property.setText(String.format("%s", resolved.version()));
+        }
+      }
+    }
+  }
+
+  private void rewriteAnnotationPaths(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+    Element configuration = projectElem.getChild(CONFIGURATION, NAMESPACE);
+    if (configuration != null) {
+      Element annotationProcessorPaths = configuration.getChild(ANNOTATION_PROCESSOR_PATHS, NAMESPACE);
+      if (annotationProcessorPaths != null) {
+        for (Element path : annotationProcessorPaths.getChildren("path", NAMESPACE)) {
+          String depKey = keyFor(path);
+          if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
+            Resolved resolved = resolvedItems.get(depKey);
+
+            // Replace version
+            Element version = path.getChild(VERSION, NAMESPACE);
+            version.setText(String.format("[%s]", resolved.version()));
+          }
         }
       }
     }
