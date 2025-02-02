@@ -27,13 +27,13 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.43</version>
+      <version>1.1.44</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
       <groupId>io.vavr</groupId>
       <artifactId>vavr</artifactId>
-      <version>0.10.5</version>
+      <version>0.10.6</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -226,8 +226,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.107]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.0.155]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.108]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.0.158]</tile>
           </tiles>
         </configuration>
       </plugin>
