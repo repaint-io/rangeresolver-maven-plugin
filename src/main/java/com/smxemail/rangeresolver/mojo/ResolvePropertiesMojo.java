@@ -11,14 +11,14 @@ import org.apache.maven.project.MavenProject;
 import com.smxemail.rangeresolver.api.Range;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
-import com.smxemail.rangeresolver.api.ResolvedType;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static com.smxemail.rangeresolver.api.ArtifactType.MAVEN;
+import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 
 @Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
@@ -41,16 +41,8 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
         }
 
         List<Resolved> resolvedProjects = mavenSession.getAllProjects().stream()
-            .map(proj -> Resolved.of(
-                "",
-                proj.getGroupId(),
-                proj.getArtifactId(),
-                proj.getVersion(),
-                Option.none(),
-                proj.getArtifactId() + ".version",
-                Range.fixed(project.getVersion()),
-                ResolvedType.RESOLVED))
-            .collect(Collectors.toList());
+            .map(this::resolveProject)
+            .toList();
 
         HashSet<Resolved> allResolved = HashSet.<Resolved>empty()
             .addAll(resolvedProjects)
@@ -70,5 +62,18 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
     } else {
       getLog().warn("Skipping property resolution - deps file is missing.");
     }
+  }
+
+  private Resolved resolveProject(MavenProject proj) {
+    return Resolved.of(
+        "",
+        MAVEN,
+        proj.getGroupId(),
+        proj.getArtifactId(),
+        proj.getVersion(),
+        Option.none(),
+        proj.getArtifactId() + ".version",
+        Range.fixed(project.getVersion()),
+        RESOLVED);
   }
 }
