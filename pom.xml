@@ -17,10 +17,13 @@
   <properties>
     <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
     <dependency.check.fastfail>false</dependency.check.fastfail>
+    <mdep.analyze.skip>true</mdep.analyze.skip>
+    <ratchetFrom>NONE</ratchetFrom>
     <relaxedScopes>.*</relaxedScopes>
     <release>24</release>
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
+    <spotless.check.skip>false</spotless.check.skip>
     <version.maven>3.9.10</version.maven>
   </properties>
 

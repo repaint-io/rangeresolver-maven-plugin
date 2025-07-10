@@ -21,31 +21,31 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 
 @Mojo(name = "unlock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
-    @Override
-    public void execute() throws MojoExecutionException {
-        if (project.isExecutionRoot()) {
-            File deps = resolveDepsFile();
-            if (deps.exists()) {
-                try {
-                    getLog().info("Unlocking resolved ranges...");
-                    String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-                    RangeResolver rangeResolver =
-                            parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+  @Override
+  public void execute() throws MojoExecutionException {
+    if (project.isExecutionRoot()) {
+      File deps = resolveDepsFile();
+      if (deps.exists()) {
+        try {
+          getLog().info("Unlocking resolved ranges...");
+          String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
+          RangeResolver rangeResolver =
+              parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
-                    List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
+          List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 
-                    RangeResolver updated = rangeResolver
-                            .withResolved(sortResolvedThings(allResolved))
-                            .withLocked(List());
+          RangeResolver updated = rangeResolver
+              .withResolved(sortResolvedThings(allResolved))
+              .withLocked(List());
 
-                    writeRangeResolveSource(updated, new FileWriter(deps));
-                    commitChangesToDependencies("Unlocked dependency ranges.", deps);
-                } catch (Exception e) {
-                    throw new MojoExecutionException(e.getMessage(), e);
-                }
-            } else {
-                getLog().warn("Skipping unlocking of ranges - deps file is missing.");
-            }
+          writeRangeResolveSource(updated, new FileWriter(deps));
+          commitChangesToDependencies("Unlocked dependency ranges.", deps);
+        } catch (Exception e) {
+          throw new MojoExecutionException(e.getMessage(), e);
         }
+      } else {
+        getLog().warn("Skipping unlocking of ranges - deps file is missing.");
+      }
     }
+  }
 }

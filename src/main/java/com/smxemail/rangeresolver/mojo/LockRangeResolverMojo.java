@@ -21,30 +21,30 @@ import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolve
 
 @Mojo(name = "lock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class LockRangeResolverMojo extends AbstractRangeResolverMojo {
-    @Override
-    public void execute() throws MojoExecutionException {
-        if (project.isExecutionRoot()) {
-            File deps = resolveDepsFile();
-            if (deps.exists()) {
-                try {
-                    getLog().info("Locking resolved ranges...");
-                    String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-                    RangeResolver rangeResolver =
-                            parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+  @Override
+  public void execute() throws MojoExecutionException {
+    if (project.isExecutionRoot()) {
+      File deps = resolveDepsFile();
+      if (deps.exists()) {
+        try {
+          getLog().info("Locking resolved ranges...");
+          String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
+          RangeResolver rangeResolver =
+              parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
 
-                    List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
+          List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 
-                    RangeResolver updated =
-                            rangeResolver.withResolved(List()).withLocked(sortResolvedThings(allResolved));
+          RangeResolver updated =
+              rangeResolver.withResolved(List()).withLocked(sortResolvedThings(allResolved));
 
-                    writeRangeResolveSource(updated, new FileWriter(deps));
-                    commitChangesToDependencies("Locked dependency ranges.", deps);
-                } catch (Exception e) {
-                    throw new MojoExecutionException(e.getMessage(), e);
-                }
-            } else {
-                getLog().warn("Skipping locking of ranges - deps file is missing.");
-            }
+          writeRangeResolveSource(updated, new FileWriter(deps));
+          commitChangesToDependencies("Locked dependency ranges.", deps);
+        } catch (Exception e) {
+          throw new MojoExecutionException(e.getMessage(), e);
         }
+      } else {
+        getLog().warn("Skipping locking of ranges - deps file is missing.");
+      }
     }
+  }
 }
