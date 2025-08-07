@@ -2,11 +2,11 @@
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 repository https://repo1.maven.org/maven2/ as central;
 
-import smx3:smx3.bill-of-materials:3.7.111;
+import smx3:smx3.bill-of-materials:3.7.117;
 
 allow unlocked /^.*smx.*$/;
 
-resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.45-SNAPSHOT,2.0.0);
+resolve highest com.smxemail:com.smxemail.rangeresolver:[1.1.45,2.0.0);
 resolve highest org.antlr:antlr4-runtime:[4.13.2,5.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-plugin-plugin:[3.15.1,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-source-plugin:[3.3.1,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
@@ -25,13 +25,13 @@ resolve highest io.vavr:vavr:[0.10.7,1.0.0) via central filtering /^.*(alpha|bet
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 
-locked com.diffplug.spotless:spotless-maven-plugin:2.45.0;
+locked com.diffplug.spotless:spotless-maven-plugin:2.46.1;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.google.truth:truth:1.4.4;
-locked com.palantir.javaformat:palantir-java-format:2.72.0;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:4.0.209;
+locked com.palantir.javaformat:palantir-java-format:2.73.0;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:4.1.2;
 locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.112;
-locked com.smxemail:com.smxemail.rangeresolver:1.1.45-SNAPSHOT;
+locked com.smxemail:com.smxemail.rangeresolver:1.1.45;
 locked io.repaint.maven:tiles-maven-plugin:2.41;
 locked io.vavr:vavr:0.10.7;
 locked org.antlr:antlr4-runtime:4.13.2;
@@ -52,6 +52,6 @@ locked org.apache.maven.shared:maven-filtering:3.4.0;
 locked org.apache.maven:maven-artifact:3.9.11;
 locked org.jacoco:jacoco-maven-plugin:0.8.13;
 locked org.jdom:jdom2:2.0.6.1;
-locked org.junit.jupiter:junit-jupiter-api:5.13.3;
-locked org.junit.jupiter:junit-jupiter-engine:5.13.3;
-locked org.junit.jupiter:junit-jupiter-params:5.13.3;
+locked org.junit.jupiter:junit-jupiter-api:5.13.4;
+locked org.junit.jupiter:junit-jupiter-engine:5.13.4;
+locked org.junit.jupiter:junit-jupiter-params:5.13.4;
