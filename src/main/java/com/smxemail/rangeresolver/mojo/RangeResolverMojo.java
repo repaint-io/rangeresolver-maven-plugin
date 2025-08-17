@@ -89,7 +89,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
 
-  private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*):*([a-zA-Z0-9\\-]*)(.*)");
+  private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*)(@sha256)?:*([a-zA-Z0-9\\-]*)(.*)");
 
   @Component
   private RepositorySystem repositorySystem;
@@ -348,7 +348,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           if (matcher.matches()) {
             var fromLine = versions.get(matcher.group(1));
             if (fromLine.isDefined()) {
-              return matcher.replaceAll("FROM $1@sha256:%s$3".formatted(fromLine.get()));
+              return matcher.replaceAll("FROM $1@%s$4".formatted(fromLine.get()));
             }
           }
           return line;
