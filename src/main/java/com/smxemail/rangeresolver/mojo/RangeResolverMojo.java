@@ -82,8 +82,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String EXCLUSION = "exclusion";
 
-  public static final String RESOLVED_FROM = " resolved from ";
-
   public static final String SCOPE = "scope";
 
   public static final String CONFIGURATION = "configuration";
