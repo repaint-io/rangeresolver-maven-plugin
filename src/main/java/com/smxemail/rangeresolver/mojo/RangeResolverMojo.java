@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.smxemail.rangeresolver.api.ArtifactType.DOCKER;
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
@@ -87,6 +88,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   public static final String CONFIGURATION = "configuration";
 
   public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
+
+  private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*):*([a-zA-Z0-9\\-]*)(.*)");
 
   @Component
   private RepositorySystem repositorySystem;
@@ -149,8 +152,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
               resolvedThings.locked().filter(excludeReactorProjects);
 
           if (filterUnusedDependencies) {
-            Predicate<Resolved> excludeUnusedDependencies =
-                buildProjectDependenciesPredicate().or(buildProjectPropertyPredicate());
+            Predicate<Resolved> excludeUnusedDependencies = buildMavenArtifactPredicate()
+                .or(buildProjectDependenciesPredicate().or(buildProjectPropertyPredicate()));
 
             resolvedExcludingReactorProjects =
                 resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
@@ -182,13 +185,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
-          Set<File> allFiles = rewritePomFiles(
-              rangeResolver
-                  .withDeprecated(deprecatedExcludingReactorProjects)
-                  .withResolved(resolvedExcludingReactorProjects)
-                  .withLocked(lockedExcludingReactorProjects),
-              baseDir);
+          RangeResolver projectResolver = rangeResolver
+              .withDeprecated(deprecatedExcludingReactorProjects)
+              .withResolved(resolvedExcludingReactorProjects)
+              .withLocked(lockedExcludingReactorProjects);
 
+          Set<File> allFiles = rewritePomFiles(projectResolver, baseDir);
+          Set<File> dockerFiles = rewriteDockerFiles(projectResolver, baseDir);
+
+          allFiles.addAll(dockerFiles);
           allFiles.add(deps);
 
           commitChangesToDependencies("Updated dependency ranges.", baseDir, allFiles);
@@ -212,6 +217,16 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     return new HashSet<>(pomFiles);
   }
 
+  private Set<File> rewriteDockerFiles(RangeResolver pomResolver, File baseDir) throws IOException {
+    Set<File> dockerFiles = findDockerFiles(baseDir);
+
+    for (File file : dockerFiles) {
+      rewriteDockerFile(pomResolver, file);
+    }
+
+    return dockerFiles;
+  }
+
   private Set<File> findPomFiles(File baseDir) throws IOException {
     try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
       String name = path.toFile().getName();
@@ -219,6 +234,19 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     })) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
+  }
+
+  private Set<File> findDockerFiles(File baseDir) throws IOException {
+    try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
+      String name = path.toFile().getName();
+      return name.startsWith("Dockerfile") && attr.isRegularFile();
+    })) {
+      return stream.map(Path::toFile).collect(Collectors.toSet());
+    }
+  }
+
+  private Predicate<Resolved> buildMavenArtifactPredicate() {
+    return r -> r.artifactType() == DOCKER;
   }
 
   private Predicate<Resolved> buildProjectPropertyPredicate() {
@@ -285,6 +313,47 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     Set<String> reactorKeys =
         mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
     return r -> reactorKeys.contains(r.key());
+  }
+
+  private void rewriteDockerFile(RangeResolver updated, File dockerFile) throws IOException {
+    List<String> dockerLines = List.ofAll(Files.readAllLines(dockerFile.toPath()));
+
+    var resolvedDockerContents = rewriteDockerLines(updated, dockerLines);
+
+    File newDockerFile = new File(dockerFile.getAbsolutePath());
+    File originalFile = new File(dockerFile.getAbsolutePath() + ".orig");
+    if (originalFile.exists()) {
+      originalFile.delete();
+    }
+    dockerFile.renameTo(originalFile);
+
+    Files.write(newDockerFile.toPath(), resolvedDockerContents.getBytes());
+  }
+
+  static String rewriteDockerLines(RangeResolver updated, List<String> dockerLines) {
+
+    var allResolved = io.vavr.collection.HashSet.<Resolved>empty()
+        .addAll(updated.resolved())
+        .addAll(updated.locked())
+        .addAll(updated.deprecated())
+        .filter(r -> r.artifactType() == DOCKER);
+
+    var versions = allResolved.foldLeft(
+        io.vavr.collection.HashMap.<String, String>empty(),
+        (map, resolved) -> map.put(resolved.key(), resolved.version()));
+
+    return dockerLines
+        .map(line -> {
+          var matcher = FROM_LINE.matcher(line);
+          if (matcher.matches()) {
+            var fromLine = versions.get(matcher.group(1));
+            if (fromLine.isDefined()) {
+              return matcher.replaceAll("FROM $1@sha256:%s$3".formatted(fromLine.get()));
+            }
+          }
+          return line;
+        })
+        .mkString("\n");
   }
 
   private void rewritePom(RangeResolver updated, File pomFile) {
