@@ -11,7 +11,7 @@
   <url>http://maven.apache.org</url>
 
   <prerequisites>
-    <maven>3.9.10</maven>
+    <maven>3.9.9</maven>
   </prerequisites>
 
   <properties>
@@ -24,7 +24,7 @@
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
     <spotless.check.skip>false</spotless.check.skip>
-    <version.maven>3.9.10</version.maven>
+    <version.maven>3.9.9</version.maven>
   </properties>
 
   <dependencies>
