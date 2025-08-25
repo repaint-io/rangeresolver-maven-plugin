@@ -20,7 +20,7 @@
     <mdep.analyze.skip>true</mdep.analyze.skip>
     <ratchetFrom>NONE</ratchetFrom>
     <relaxedScopes>.*</relaxedScopes>
-    <release>24</release>
+    <release>23</release>
     <scmDeveloperConnection>scm:git:ssh://git@gitlab.smxemail.com:dev/rangeresolver-maven-plugin.git</scmDeveloperConnection>
     <scmUrl>https://gitlab.smxemail.com/dev/rangeresolver-maven-plugin</scmUrl>
     <spotless.check.skip>false</spotless.check.skip>
@@ -31,7 +31,7 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.45</version>
+      <version>1.1.46</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
