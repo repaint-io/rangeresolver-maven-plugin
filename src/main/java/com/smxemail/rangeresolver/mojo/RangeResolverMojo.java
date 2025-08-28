@@ -239,7 +239,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private Set<File> findDockerFiles(File baseDir) throws IOException {
     try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
       String name = path.toFile().getName();
-      return name.startsWith("Dockerfile") && attr.isRegularFile();
+      return name.startsWith("Dockerfile") && !name.endsWith(".orig") && attr.isRegularFile();
     })) {
       return stream.map(Path::toFile).collect(Collectors.toSet());
     }
