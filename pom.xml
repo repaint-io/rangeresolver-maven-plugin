@@ -230,8 +230,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.115]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.8]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.116]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.10]</tile>
           </tiles>
         </configuration>
       </plugin>

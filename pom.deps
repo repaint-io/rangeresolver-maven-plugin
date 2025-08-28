@@ -2,7 +2,7 @@
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 repository https://repo1.maven.org/maven2/ as central;
 
-import smx3:smx3.bill-of-materials:3.7.126;
+import smx3:smx3.bill-of-materials:3.7.128;
 
 allow unlocked /^.*smx.*$/;
 
@@ -29,8 +29,8 @@ locked com.diffplug.spotless:spotless-maven-plugin:2.46.1;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.google.truth:truth:1.4.4;
 locked com.palantir.javaformat:palantir-java-format:2.73.0;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:4.1.8;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.115;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:4.1.10;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.116;
 locked com.smxemail:com.smxemail.rangeresolver:1.1.46;
 locked io.repaint.maven:tiles-maven-plugin:2.41;
 locked io.vavr:vavr:0.10.7;
