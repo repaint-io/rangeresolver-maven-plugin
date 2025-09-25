@@ -31,7 +31,7 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.46</version>
+      <version>1.1.47</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
@@ -198,7 +198,7 @@
     <dependency>
       <groupId>com.google.truth</groupId>
       <artifactId>truth</artifactId>
-      <version>1.4.4</version>
+      <version>1.4.5</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -230,8 +230,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.116]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.10]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.117]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.25]</tile>
           </tiles>
         </configuration>
       </plugin>
