@@ -31,13 +31,13 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.47</version>
+      <version>1.1.48</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
       <groupId>io.vavr</groupId>
       <artifactId>vavr</artifactId>
-      <version>0.10.7</version>
+      <version>0.11.0</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -204,19 +204,19 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.13.4</version>
+      <version>6.0.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.13.4</version>
+      <version>6.0.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>5.13.4</version>
+      <version>6.0.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -230,8 +230,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.117]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.25]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.119]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[4.1.57]</tile>
           </tiles>
         </configuration>
       </plugin>
@@ -242,7 +242,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.15.1</version>
+        <version>3.15.2</version>
         <configuration>
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
         </configuration>
