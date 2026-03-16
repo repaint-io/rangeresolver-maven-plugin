@@ -318,7 +318,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private void rewriteDockerFile(RangeResolver updated, File dockerFile) throws IOException {
     List<String> dockerLines = List.ofAll(Files.readAllLines(dockerFile.toPath()));
 
-    var resolvedDockerContents = rewriteDockerLines(updated, dockerLines);
+    var resolvedDockerContents = rewriteDockerLines(updated, dockerLines) + "\n";
 
     File newDockerFile = new File(dockerFile.getAbsolutePath());
     File originalFile = new File(dockerFile.getAbsolutePath() + ".orig");
