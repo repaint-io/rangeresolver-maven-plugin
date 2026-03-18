@@ -2,16 +2,16 @@
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 repository https://repo1.maven.org/maven2/ as central;
 
-import smx3:smx3.bill-of-materials:4.2.2;
+import smx3:smx3.bill-of-materials:4.2.45;
 
 allow unlocked /^.*smx.*$/;
 
-resolve highest com.smxemail:com.smxemail.rangeresolver:[1.1.50,2.0.0);
+resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.51,2.0.0);
 resolve highest org.antlr:antlr4-runtime:[4.13.2,5.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-plugin-plugin:[3.15.2,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-source-plugin:[3.4.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-resources-plugin:[3.5.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
-resolve highest org.apache.maven.plugins:maven-dependency-plugin:[3.10.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
+resolve highest org.apache.maven.plugins:maven-dependency-plugin:[3.11.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-builder-support:[3.5.0,4.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-resolver-provider:[3.5.0,4.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-repository-metadata:[3.5.0,4.0.0) via central;
@@ -25,33 +25,33 @@ resolve highest io.vavr:vavr:[1.0.1,2.0.0) via central filtering /^.*(alpha|beta
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 
-locked com.diffplug.spotless:spotless-maven-plugin:3.3.0;
+locked com.diffplug.spotless:spotless-maven-plugin:3.7.0;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.google.truth:truth:1.4.5;
-locked com.palantir.javaformat:palantir-java-format:2.89.0;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:4.1.83;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.121;
-locked com.smxemail:com.smxemail.rangeresolver:1.1.50;
-locked io.repaint.maven:tiles-maven-plugin:2.43;
+locked com.palantir.javaformat:palantir-java-format:2.93.0;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:5.0.31;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.126;
+locked com.smxemail:com.smxemail.rangeresolver:1.1.51;
+locked io.repaint.maven:tiles-maven-plugin:2.44;
 locked io.vavr:vavr:1.0.1;
 locked org.antlr:antlr4-runtime:4.13.2;
 locked org.apache.maven.plugins:maven-assembly-plugin:3.8.0;
-locked org.apache.maven.plugins:maven-dependency-plugin:3.10.0;
+locked org.apache.maven.plugins:maven-dependency-plugin:3.11.0;
 locked org.apache.maven.plugins:maven-deploy-plugin:3.1.4;
-locked org.apache.maven.plugins:maven-failsafe-plugin:3.5.5;
+locked org.apache.maven.plugins:maven-failsafe-plugin:3.6.0-M1;
 locked org.apache.maven.plugins:maven-install-plugin:3.1.4;
 locked org.apache.maven.plugins:maven-jar-plugin:3.5.0;
 locked org.apache.maven.plugins:maven-plugin-plugin:3.15.2;
 locked org.apache.maven.plugins:maven-resources-plugin:3.5.0;
-locked org.apache.maven.plugins:maven-site-plugin:3.21.0;
+locked org.apache.maven.plugins:maven-site-plugin:3.22.0;
 locked org.apache.maven.plugins:maven-source-plugin:3.4.0;
-locked org.apache.maven.plugins:maven-surefire-plugin:3.5.5;
+locked org.apache.maven.plugins:maven-surefire-plugin:3.6.0-M1;
 locked org.apache.maven.scm:maven-scm-api:1.13.0;
 locked org.apache.maven.scm:maven-scm-manager-plexus:1.13.0;
 locked org.apache.maven.shared:maven-filtering:3.5.0;
-locked org.apache.maven:maven-artifact:3.9.13;
-locked org.jacoco:jacoco-maven-plugin:0.8.14;
+locked org.apache.maven:maven-artifact:3.9.16;
+locked org.jacoco:jacoco-maven-plugin:0.8.15;
 locked org.jdom:jdom2:2.0.6.1;
-locked org.junit.jupiter:junit-jupiter-api:6.0.3;
-locked org.junit.jupiter:junit-jupiter-engine:6.0.3;
-locked org.junit.jupiter:junit-jupiter-params:6.0.3;
+locked org.junit.jupiter:junit-jupiter-api:6.1.0;
+locked org.junit.jupiter:junit-jupiter-engine:6.1.0;
+locked org.junit.jupiter:junit-jupiter-params:6.1.0;
