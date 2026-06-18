@@ -41,7 +41,6 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
         getLog().info("Updating lower bounds...");
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
-          String localRepoDir = mavenSession.getLocalRepository().getBasedir();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
           RangeResolver rangeResolver =
               parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
