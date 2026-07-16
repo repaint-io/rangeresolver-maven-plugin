@@ -100,6 +100,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   @Parameter(property = "relaxedScopes")
   public String relaxedScopes = "";
 
+  @Parameter(property = "relaxedGavs")
+  public String relaxedGavs = "";
+
   @Parameter(property = "testExclusions")
   public java.util.List<String> testExclusions = new ArrayList<>();
 
@@ -552,7 +555,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           // Replace version
           Element version = dependency.getChild(VERSION, NAMESPACE);
           if (version != null) {
-            if (isRelaxedScope(dependency)) {
+            if (isRelaxedScope(dependency) || isRelaxedGav(resolved)) {
               version.setText(String.format("%s", resolved.version()));
             } else {
               version.setText(String.format("[%s]", resolved.version()));
@@ -604,6 +607,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private boolean isProductionScope(Element dependency) {
     Element scope = dependency.getChild(SCOPE, NAMESPACE);
     return scope == null || exclusionScopes.matcher(scope.getText()).matches();
+  }
+
+  private boolean isRelaxedGav(Resolved resolved) {
+    return resolved.key().matches(relaxedGavs);
   }
 
   private boolean isRelaxedScope(Element dependency) {
