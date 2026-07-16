@@ -189,7 +189,7 @@
     <dependency>
       <groupId>org.apache.maven.shared</groupId>
       <artifactId>maven-filtering</artifactId>
-      <version>3.5.0</version>
+      <version>3.5.1</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -207,19 +207,19 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>6.1.0</version>
+      <version>6.1.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>6.1.0</version>
+      <version>6.1.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
-      <version>6.1.0</version>
+      <version>6.1.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -233,8 +233,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.126]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.31]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.127]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.40]</tile>
           </tiles>
         </configuration>
       </plugin>
