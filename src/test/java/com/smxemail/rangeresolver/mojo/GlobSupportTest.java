@@ -3,7 +3,7 @@ package com.smxemail.rangeresolver.mojo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static com.google.common.truth.Truth.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
 

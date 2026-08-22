@@ -13,13 +13,15 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static com.smxemail.rangeresolver.api.ArtifactType.MAVEN;
 import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "resolve-properties", defaultPhase = LifecyclePhase.INITIALIZE, threadSafe = true)
 public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
@@ -32,8 +34,8 @@ public class ResolvePropertiesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver =
-            parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+        RangeResolver rangeResolver = parseRangeResolver(
+            resolutionSource, Files.newBufferedReader(deps.toPath(), UTF_8), allowUnlocked, allowSnapshots);
 
         if (!allowDeprecatedDependencies && !rangeResolver.deprecated().isEmpty()) {
           throwDeprecationException(rangeResolver.deprecated());

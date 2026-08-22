@@ -17,13 +17,14 @@ import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.nio.file.Files;
 import java.util.Map;
 
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
@@ -42,8 +43,11 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver =
-              parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver = parseRangeResolver(
+              resolutionSource,
+              Files.newBufferedReader(deps.toPath(), UTF_8),
+              allowUnlocked,
+              allowSnapshots);
           RepositoryResolver repositoryResolver = createRepositoryResolver(
               repositorySystem,
               repositorySystemSession,
@@ -64,7 +68,7 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
 
           RangeResolver updated = rangeResolver.withResolves(updatedLowerBoundResolves);
 
-          writeRangeResolveSource(updated, new FileWriter(deps));
+          writeRangeResolveSource(updated, Files.newBufferedWriter(deps.toPath(), UTF_8));
           commitChangesToDependencies("Updated lower bounds of ranges.", deps);
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);

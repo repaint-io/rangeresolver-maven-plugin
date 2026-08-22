@@ -28,8 +28,6 @@ import com.smxemail.rangeresolver.api.Resolved;
 import com.smxemail.rangeresolver.lang.RepositoryResolver;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,6 +46,8 @@ import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeR
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "resolve-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class RangeResolverMojo extends AbstractRangeResolverMojo {
@@ -124,8 +124,11 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         try {
           boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver =
-              parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver = parseRangeResolver(
+              resolutionSource,
+              Files.newBufferedReader(deps.toPath(), UTF_8),
+              allowUnlocked,
+              allowSnapshots);
 
           RepositoryResolver repositoryResolver = createRepositoryResolver(
               repositorySystem,
@@ -184,7 +187,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   .withDeprecated(deprecatedExcludingReactorProjects)
                   .withResolved(resolvedExcludingReactorProjects)
                   .withLocked(lockedExcludingReactorProjects),
-              new FileWriter(deps));
+              Files.newBufferedWriter(deps.toPath(), UTF_8));
 
           File baseDir = deps.getAbsoluteFile().getParentFile();
 
@@ -330,7 +333,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
     dockerFile.renameTo(originalFile);
 
-    Files.write(newDockerFile.toPath(), resolvedDockerContents.getBytes());
+    Files.write(newDockerFile.toPath(), resolvedDockerContents.getBytes(UTF_8));
   }
 
   static String rewriteDockerLines(RangeResolver updated, List<String> dockerLines) {
@@ -421,7 +424,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
       Format format = getPomRewriteFormat();
 
-      new XMLOutputter(format).output(pomDocument, new FileWriter(newPomFile));
+      new XMLOutputter(format).output(pomDocument, Files.newBufferedWriter(newPomFile.toPath(), UTF_8));
 
     } catch (IOException | JDOMException e) {
       throw new RuntimeException(e.getMessage(), e);

@@ -14,8 +14,8 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Objects.requireNonNull;
 
 @Mojo(name = "verify", defaultPhase = LifecyclePhase.INITIALIZE)
@@ -40,8 +41,8 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
       try {
         String resolutionSource = getSourceReference(mavenSession);
 
-        RangeResolver rangeResolver =
-            parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+        RangeResolver rangeResolver = parseRangeResolver(
+            resolutionSource, Files.newBufferedReader(deps.toPath(), UTF_8), allowUnlocked, allowSnapshots);
         Predicate<Dependency> isUndeclared =
             declaredDependency(rangeResolver).negate();
         Set<Dependency> undeclared = getDependencies(currentProject, isUndeclared);

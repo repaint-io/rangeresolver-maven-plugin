@@ -21,6 +21,7 @@
   <properties>
     <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
     <dependency.check.fastfail>false</dependency.check.fastfail>
+    <maven.compiler.release>23</maven.compiler.release>
     <mdep.analyze.skip>true</mdep.analyze.skip>
     <ratchetFrom>NONE</ratchetFrom>
     <relaxedScopes>.*</relaxedScopes>
@@ -199,9 +200,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>com.google.truth</groupId>
-      <artifactId>truth</artifactId>
-      <version>1.4.5</version>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>3.27.7</version>
       <scope>test</scope>
     </dependency>
     <dependency>

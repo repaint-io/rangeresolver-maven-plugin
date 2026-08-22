@@ -11,9 +11,9 @@ import com.smxemail.rangeresolver.api.Range;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import static io.vavr.control.Option.none;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.smxemail.rangeresolver.api.ArtifactType.DOCKER;
 import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;

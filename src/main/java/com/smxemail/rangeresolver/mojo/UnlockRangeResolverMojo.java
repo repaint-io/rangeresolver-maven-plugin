@@ -10,14 +10,15 @@ import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.nio.file.Files;
 
 import static io.vavr.API.List;
 
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.sortResolvedThings;
 import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "unlock-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
@@ -29,8 +30,11 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
         try {
           getLog().info("Unlocking resolved ranges...");
           String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver =
-              parseRangeResolver(resolutionSource, new FileReader(deps), allowUnlocked, allowSnapshots);
+          RangeResolver rangeResolver = parseRangeResolver(
+              resolutionSource,
+              Files.newBufferedReader(deps.toPath(), UTF_8),
+              allowUnlocked,
+              allowSnapshots);
 
           List<Resolved> allResolved = rangeResolver.locked().appendAll(rangeResolver.resolved());
 
@@ -38,7 +42,7 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
               .withResolved(sortResolvedThings(allResolved))
               .withLocked(List());
 
-          writeRangeResolveSource(updated, new FileWriter(deps));
+          writeRangeResolveSource(updated, Files.newBufferedWriter(deps.toPath(), UTF_8));
           commitChangesToDependencies("Unlocked dependency ranges.", deps);
         } catch (Exception e) {
           throw new MojoExecutionException(e.getMessage(), e);

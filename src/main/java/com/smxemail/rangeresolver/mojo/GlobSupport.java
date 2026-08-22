@@ -2,7 +2,7 @@ package com.smxemail.rangeresolver.mojo;
 
 import java.util.regex.Pattern;
 
-public class GlobSupport {
+public final class GlobSupport {
   private static final Pattern globReplacement = Pattern.compile("\\*");
 
   private GlobSupport() {}
