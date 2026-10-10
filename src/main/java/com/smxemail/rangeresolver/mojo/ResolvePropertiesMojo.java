@@ -1,7 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
-import io.vavr.collection.HashSet;
-import io.vavr.control.Option;
+import dev.zazr.collection.HashSet;
+import dev.zazr.control.Option;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;

@@ -2,8 +2,8 @@ package com.smxemail.rangeresolver.mojo;
 
 import com.google.common.collect.HashMultimap;
 
-import io.vavr.collection.HashSet;
-import io.vavr.collection.List;
+import dev.zazr.collection.HashSet;
+import dev.zazr.collection.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ import com.smxemail.rangeresolver.api.Range;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
-import static io.vavr.control.Option.none;
+import static dev.zazr.control.Option.none;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

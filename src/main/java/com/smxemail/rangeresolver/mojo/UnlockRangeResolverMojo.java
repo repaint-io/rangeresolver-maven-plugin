@@ -1,6 +1,6 @@
 package com.smxemail.rangeresolver.mojo;
 
-import io.vavr.collection.List;
+import dev.zazr.collection.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -11,8 +11,6 @@ import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
 import java.nio.file.Files;
-
-import static io.vavr.API.List;
 
 import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static com.smxemail.rangeresolver.lang.RepositoryResolver.sortResolvedThings;
@@ -40,7 +38,7 @@ public class UnlockRangeResolverMojo extends AbstractRangeResolverMojo {
 
           RangeResolver updated = rangeResolver
               .withResolved(sortResolvedThings(allResolved))
-              .withLocked(List());
+              .withLocked(List.empty());
 
           writeRangeResolveSource(updated, Files.newBufferedWriter(deps.toPath(), UTF_8));
           commitChangesToDependencies("Unlocked dependency ranges.", deps);

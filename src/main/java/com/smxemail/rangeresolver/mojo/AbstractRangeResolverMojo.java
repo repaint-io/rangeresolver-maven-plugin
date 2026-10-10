@@ -2,7 +2,7 @@ package com.smxemail.rangeresolver.mojo;
 
 import com.google.common.base.MoreObjects;
 
-import io.vavr.collection.List;
+import dev.zazr.collection.List;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;

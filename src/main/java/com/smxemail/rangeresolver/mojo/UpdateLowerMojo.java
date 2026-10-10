@@ -1,6 +1,6 @@
 package com.smxemail.rangeresolver.mojo;
 
-import io.vavr.collection.List;
+import dev.zazr.collection.List;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;

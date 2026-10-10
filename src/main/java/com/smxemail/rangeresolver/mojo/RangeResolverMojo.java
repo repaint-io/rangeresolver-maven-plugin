@@ -1,6 +1,7 @@
 package com.smxemail.rangeresolver.mojo;
 
-import io.vavr.collection.List;
+import dev.zazr.collection.List;
+import dev.zazr.control.Option.Some;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
@@ -277,7 +278,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 keyFor(p.getParent().getGroupId(), p.getParent().getArtifactId()));
           }
 
-          return keys.toJavaStream().distinct();
+          return keys.stream().distinct();
         })
         .collect(Collectors.toSet());
 
@@ -338,23 +339,22 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   static String rewriteDockerLines(RangeResolver updated, List<String> dockerLines) {
 
-    var allResolved = io.vavr.collection.HashSet.<Resolved>empty()
+    var allResolved = dev.zazr.collection.HashSet.<Resolved>empty()
         .addAll(updated.resolved())
         .addAll(updated.locked())
         .addAll(updated.deprecated())
         .filter(r -> r.artifactType() == DOCKER);
 
     var versions = allResolved.foldLeft(
-        io.vavr.collection.HashMap.<String, String>empty(),
+        dev.zazr.collection.HashMap.<String, String>empty(),
         (map, resolved) -> map.put(resolved.key(), resolved.version()));
 
     return dockerLines
         .map(line -> {
           var matcher = FROM_LINE.matcher(line);
           if (matcher.matches()) {
-            var fromLine = versions.get(matcher.group(1));
-            if (fromLine.isDefined()) {
-              return matcher.replaceAll("FROM $1@%s$4".formatted(fromLine.get()));
+            if (versions.get(matcher.group(1)) instanceof Some(var version)) {
+              return matcher.replaceAll("FROM $1@%s$4".formatted(version));
             }
           }
           return line;
