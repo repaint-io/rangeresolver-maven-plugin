@@ -18,6 +18,7 @@ import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
+import org.jdom2.filter.Filters;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.LineSeparator;
@@ -158,9 +159,13 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
           List<Resolved> lockedExcludingReactorProjects =
               resolvedThings.locked().filter(excludeReactorProjects);
 
+          File baseDir = deps.getAbsoluteFile().getParentFile();
+
           if (filterUnusedDependencies) {
             Predicate<Resolved> excludeUnusedDependencies = buildMavenArtifactPredicate()
-                .or(buildProjectDependenciesPredicate().or(buildProjectPropertyPredicate()));
+                .or(buildProjectDependenciesPredicate())
+                .or(buildProjectPropertyPredicate())
+                .or(buildPomFileReferencesPredicate(baseDir));
 
             resolvedExcludingReactorProjects =
                 resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
@@ -189,8 +194,6 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                   .withResolved(resolvedExcludingReactorProjects)
                   .withLocked(lockedExcludingReactorProjects),
               Files.newBufferedWriter(deps.toPath(), UTF_8));
-
-          File baseDir = deps.getAbsoluteFile().getParentFile();
 
           RangeResolver projectResolver = rangeResolver
               .withDeprecated(deprecatedExcludingReactorProjects)
@@ -283,6 +286,54 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         .collect(Collectors.toSet());
 
     return r -> usedDependencyKeys.contains(r.key());
+  }
+
+  /**
+   * Keys and property names referenced directly in the pom.xml/tile.xml files that will be rewritten. The Maven model
+   * alone misses tile.xml content (a tile project doesn't apply its own tile) and plugins/dependencies in inactive
+   * profiles.
+   */
+  private Predicate<Resolved> buildPomFileReferencesPredicate(File baseDir) throws IOException {
+    Set<String> referencedKeys = new HashSet<>();
+    Set<String> propertyNames = new HashSet<>();
+    for (File pomFile : findPomFiles(baseDir)) {
+      try {
+        Element root = new SAXBuilder().build(pomFile).getRootElement();
+        referencedKeys.addAll(referencedKeys(root));
+        propertyNames.addAll(propertyNames(root));
+      } catch (JDOMException e) {
+        throw new IOException("Unable to parse " + pomFile + ": " + e.getMessage(), e);
+      }
+    }
+    return r -> referencedKeys.contains(r.key()) || propertyNames.contains(r.propertyName());
+  }
+
+  static Set<String> referencedKeys(Element root) {
+    Set<String> keys = new HashSet<>();
+    for (Element element : root.getDescendants(Filters.element())) {
+      String groupId = element.getChildTextTrim(GROUP_ID, NAMESPACE);
+      String artifactId = element.getChildTextTrim(ARTIFACT_ID, NAMESPACE);
+      if (groupId != null && artifactId != null) {
+        keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+      }
+      if ("tile".equals(element.getName())) {
+        String[] parts = element.getTextTrim().split(":");
+        if (parts.length >= 2) {
+          keys.add(String.format(KEY_FORMAT, parts[0], parts[1]));
+        }
+      }
+    }
+    return keys;
+  }
+
+  static Set<String> propertyNames(Element root) {
+    Set<String> names = new HashSet<>();
+    for (Element properties : root.getDescendants(Filters.element(PROPERTIES, NAMESPACE))) {
+      for (Element property : properties.getChildren()) {
+        names.add(property.getName());
+      }
+    }
+    return names;
   }
 
   private List<String> resolveDependencyKeys(List<Dependency> dependencies) {

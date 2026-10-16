@@ -82,4 +82,62 @@ class RangeResolverMojoTest {
 
     assertThat(newLines).isEqualTo(expected);
   }
+
+  @Test
+  public void referencedKeysIncludesTileXmlBuildAndProfilePlugins() throws Exception {
+
+    // spotless:off
+    var tileXml = """
+      <project xmlns="http://maven.apache.org/POM/4.0.0">
+        <properties>
+          <failBuildOnCVSS>5</failBuildOnCVSS>
+        </properties>
+        <build>
+          <plugins>
+            <plugin>
+              <groupId>org.cyclonedx</groupId>
+              <artifactId>cyclonedx-maven-plugin</artifactId>
+              <version>2.9.1</version>
+            </plugin>
+            <plugin>
+              <groupId>io.repaint.maven</groupId>
+              <artifactId>tiles-maven-plugin</artifactId>
+              <configuration>
+                <tiles>
+                  <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.130]</tile>
+                </tiles>
+              </configuration>
+            </plugin>
+          </plugins>
+        </build>
+        <profiles>
+          <profile>
+            <id>security</id>
+            <build>
+              <plugins>
+                <plugin>
+                  <groupId>org.owasp</groupId>
+                  <artifactId>dependency-check-maven</artifactId>
+                  <version>12.1.0</version>
+                </plugin>
+              </plugins>
+            </build>
+          </profile>
+        </profiles>
+      </project>
+      """;
+    // spotless:on
+
+    var root = new org.jdom2.input.SAXBuilder()
+        .build(new java.io.StringReader(tileXml))
+        .getRootElement();
+
+    assertThat(RangeResolverMojo.referencedKeys(root))
+        .contains(
+            "org.cyclonedx:cyclonedx-maven-plugin",
+            "org.owasp:dependency-check-maven",
+            "io.repaint.maven:tiles-maven-plugin",
+            "com.smxemail.tiles:com.smxemail.tiles.release");
+    assertThat(RangeResolverMojo.propertyNames(root)).contains("failBuildOnCVSS");
+  }
 }
