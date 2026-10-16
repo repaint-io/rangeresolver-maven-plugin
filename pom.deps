@@ -2,7 +2,7 @@
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 repository https://repo1.maven.org/maven2/ as central;
 
-import smx3:smx3.bill-of-materials:4.2.82;
+import smx3:smx3.bill-of-materials:4.2.87;
 
 allow unlocked /^.*smx.*$/;
 
@@ -25,17 +25,15 @@ resolve highest dev.zazr:zazr-core:[0.4.0,1.0.0) via central filtering /^.*(alph
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 
-locked com.diffplug.spotless:spotless-maven-plugin:3.10.3;
+locked com.diffplug.spotless:spotless-maven-plugin:3.10.4;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.palantir.javaformat:palantir-java-format:2.102.0;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:5.0.66;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.129;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:5.0.71;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.130;
 locked com.smxemail:com.smxemail.rangeresolver:1.1.54;
 locked dev.zazr:zazr-core:0.4.0;
-locked io.repaint.maven:tiles-maven-plugin:2.45.1;
+locked io.repaint.maven:tiles-maven-plugin:2.47.0;
 locked org.antlr:antlr4-runtime:4.13.2;
-locked org.apache.maven.plugins:maven-assembly-plugin:3.8.0;
-locked org.apache.maven.plugins:maven-dependency-plugin:3.11.0;
 locked org.apache.maven.plugins:maven-deploy-plugin:3.2.0;
 locked org.apache.maven.plugins:maven-failsafe-plugin:3.6.0;
 locked org.apache.maven.plugins:maven-install-plugin:3.2.0;
