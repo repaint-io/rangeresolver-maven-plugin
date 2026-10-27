@@ -2,11 +2,11 @@
 repository https://nexus.az1.smxk8s.net/repository/maven-releases/;
 repository https://repo1.maven.org/maven2/ as central;
 
-import smx3:smx3.bill-of-materials:4.2.87;
+import smx3:smx3.bill-of-materials:4.2.89;
 
 allow unlocked /^.*smx.*$/;
 
-resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.54,2.0.0);
+resolve snapshot com.smxemail:com.smxemail.rangeresolver:[1.1.55,2.0.0);
 resolve highest org.antlr:antlr4-runtime:[4.13.2,5.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-plugin-plugin:[3.16.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-source-plugin:[3.4.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
@@ -28,9 +28,9 @@ alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
 locked com.diffplug.spotless:spotless-maven-plugin:3.10.4;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.palantir.javaformat:palantir-java-format:2.102.0;
-locked com.smxemail.tiles:com.smxemail.tiles.enforcements:5.0.71;
-locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.130;
-locked com.smxemail:com.smxemail.rangeresolver:1.1.54;
+locked com.smxemail.tiles:com.smxemail.tiles.enforcements:5.0.73;
+locked com.smxemail.tiles:com.smxemail.tiles.release:2.2.131;
+locked com.smxemail:com.smxemail.rangeresolver:1.1.55;
 locked dev.zazr:zazr-core:0.4.0;
 locked io.repaint.maven:tiles-maven-plugin:2.47.0;
 locked org.antlr:antlr4-runtime:4.13.2;
