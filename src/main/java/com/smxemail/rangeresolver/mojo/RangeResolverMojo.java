@@ -404,7 +404,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         .map(line -> {
           var matcher = FROM_LINE.matcher(line);
           if (matcher.matches()) {
-            if (versions.get(matcher.group(1)) instanceof Some(var version)) {
+            if (versions.get(matcher.group(1)) instanceof Some(final var version)) {
               return matcher.replaceAll("FROM $1@%s$4".formatted(version));
             }
           }
