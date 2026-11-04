@@ -33,7 +33,7 @@
     <dependency>
       <groupId>com.smxemail</groupId>
       <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.55</version>
+      <version>1.1.56</version>
       <exclusions></exclusions>
     </dependency>
     <dependency>
@@ -232,8 +232,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.131]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.73]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.132]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.80]</tile>
           </tiles>
         </configuration>
       </plugin>
