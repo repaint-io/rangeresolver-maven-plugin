@@ -91,6 +91,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
   public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
 
+  public static final String EXTENSION = "extension";
+
+  public static final String EXTENSIONS_XML = ".mvn/extensions.xml";
+
   private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*)(@sha256)?:*([a-zA-Z0-9\\-]*)(.*)");
 
   @Component
@@ -165,7 +169,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             Predicate<Resolved> excludeUnusedDependencies = buildMavenArtifactPredicate()
                 .or(buildProjectDependenciesPredicate())
                 .or(buildProjectPropertyPredicate())
-                .or(buildPomFileReferencesPredicate(baseDir));
+                .or(buildPomFileReferencesPredicate(baseDir))
+                .or(buildExtensionsReferencesPredicate(baseDir));
 
             resolvedExcludingReactorProjects =
                 resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
@@ -202,8 +207,10 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
           Set<File> allFiles = rewritePomFiles(projectResolver, baseDir);
           Set<File> dockerFiles = rewriteDockerFiles(projectResolver, baseDir);
+          Set<File> extensionFiles = rewriteExtensionsFile(projectResolver, baseDir);
 
           allFiles.addAll(dockerFiles);
+          allFiles.addAll(extensionFiles);
           allFiles.add(deps);
 
           commitChangesToDependencies("Updated dependency ranges.", baseDir, allFiles);
@@ -235,6 +242,90 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
 
     return dockerFiles;
+  }
+
+  private Set<File> rewriteExtensionsFile(RangeResolver resolver, File baseDir) throws IOException {
+    File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+    if (!extensionsFile.isFile()) {
+      return new HashSet<>();
+    }
+
+    try {
+      Document document = new SAXBuilder().build(extensionsFile);
+      if (!rewriteExtensions(resolvedItemsFor(resolver), resolveReactorKeys(), document.getRootElement())) {
+        return new HashSet<>();
+      }
+
+      File originalFile = new File(extensionsFile.getAbsolutePath() + ".orig");
+      if (originalFile.exists()) {
+        originalFile.delete();
+      }
+      Files.copy(extensionsFile.toPath(), originalFile.toPath());
+
+      getLog().info("Rewriting extensions in " + EXTENSIONS_XML);
+      try (var writer = Files.newBufferedWriter(extensionsFile.toPath(), UTF_8)) {
+        new XMLOutputter(getPomRewriteFormat()).output(document, writer);
+      }
+      return new HashSet<>(Set.of(extensionsFile));
+    } catch (JDOMException e) {
+      throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Rewrites the {@code <version>} of each {@code <extension>} that has a resolved version. Extensions do not support
+   * version ranges, so the plain resolved version is written.
+   *
+   * @return true if any version was changed
+   */
+  static boolean rewriteExtensions(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element root) {
+    Namespace ns = root.getNamespace();
+    boolean changed = false;
+    for (Element extension : root.getChildren(EXTENSION, ns)) {
+      String key = String.format(
+          KEY_FORMAT, extension.getChildTextTrim(GROUP_ID, ns), extension.getChildTextTrim(ARTIFACT_ID, ns));
+      Element version = extension.getChild(VERSION, ns);
+      Resolved resolved = resolvedItems.get(key);
+      if (version != null
+          && resolved != null
+          && !reactorKeys.contains(key)
+          && !resolved.version().equals(version.getTextTrim())) {
+        version.setText(resolved.version());
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  static Set<String> extensionKeys(Element root) {
+    Namespace ns = root.getNamespace();
+    Set<String> keys = new HashSet<>();
+    for (Element extension : root.getChildren(EXTENSION, ns)) {
+      String groupId = extension.getChildTextTrim(GROUP_ID, ns);
+      String artifactId = extension.getChildTextTrim(ARTIFACT_ID, ns);
+      if (groupId != null && artifactId != null) {
+        keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+      }
+    }
+    return keys;
+  }
+
+  /**
+   * Keys of the build extensions declared in {@code .mvn/extensions.xml}, which are not part of the Maven project
+   * model.
+   */
+  private Predicate<Resolved> buildExtensionsReferencesPredicate(File baseDir) throws IOException {
+    File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+    if (!extensionsFile.isFile()) {
+      return r -> false;
+    }
+    try {
+      Set<String> keys =
+          extensionKeys(new SAXBuilder().build(extensionsFile).getRootElement());
+      return r -> keys.contains(r.key());
+    } catch (JDOMException e) {
+      throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
+    }
   }
 
   private Set<File> findPomFiles(File baseDir) throws IOException {
@@ -416,12 +507,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
   private void rewritePom(RangeResolver updated, File pomFile) {
     try {
       Set<String> reactorKeys = resolveReactorKeys();
-
-      Map<String, Resolved> resolvedItems = new HashMap<>();
-      resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
-      resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
-      resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
-      resolvedItems.putAll(updated.blacklisted().collect(Resolved.collectByKey));
+      Map<String, Resolved> resolvedItems = resolvedItemsFor(updated);
 
       Document pomDocument = new SAXBuilder().build(pomFile);
       Element projectElem = pomDocument.getRootElement();
@@ -480,6 +566,15 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     } catch (IOException | JDOMException e) {
       throw new RuntimeException(e.getMessage(), e);
     }
+  }
+
+  private static Map<String, Resolved> resolvedItemsFor(RangeResolver updated) {
+    Map<String, Resolved> resolvedItems = new HashMap<>();
+    resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
+    resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
+    resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
+    resolvedItems.putAll(updated.blacklisted().collect(Resolved.collectByKey));
+    return resolvedItems;
   }
 
   private Format getPomRewriteFormat() {

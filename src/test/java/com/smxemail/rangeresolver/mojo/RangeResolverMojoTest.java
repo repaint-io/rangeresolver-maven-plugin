@@ -5,17 +5,23 @@ import com.google.common.collect.HashMultimap;
 import dev.zazr.collection.HashSet;
 import dev.zazr.collection.List;
 
+import org.jdom2.input.SAXBuilder;
 import org.junit.jupiter.api.Test;
 
 import com.smxemail.rangeresolver.api.Range;
 import com.smxemail.rangeresolver.api.RangeResolver;
 import com.smxemail.rangeresolver.api.Resolved;
 
+import java.io.StringReader;
+import java.util.Map;
+import java.util.Set;
+
 import static dev.zazr.control.Option.none;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.smxemail.rangeresolver.api.ArtifactType.DOCKER;
+import static com.smxemail.rangeresolver.api.ArtifactType.MAVEN;
 import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;
 
 class RangeResolverMojoTest {
@@ -128,9 +134,7 @@ class RangeResolverMojoTest {
       """;
     // spotless:on
 
-    var root = new org.jdom2.input.SAXBuilder()
-        .build(new java.io.StringReader(tileXml))
-        .getRootElement();
+    var root = new SAXBuilder().build(new StringReader(tileXml)).getRootElement();
 
     assertThat(RangeResolverMojo.referencedKeys(root))
         .contains(
@@ -139,5 +143,52 @@ class RangeResolverMojoTest {
             "io.repaint.maven:tiles-maven-plugin",
             "com.smxemail.tiles:com.smxemail.tiles.release");
     assertThat(RangeResolverMojo.propertyNames(root)).contains("failBuildOnCVSS");
+  }
+
+  // spotless:off
+  static final String EXTENSIONS_XML = """
+    <extensions>
+      <extension>
+        <groupId>eu.maveniverse.maven.nisse</groupId>
+        <artifactId>extension</artifactId>
+        <version>0.9.11</version>
+      </extension>
+    </extensions>
+    """;
+  // spotless:on
+
+  @Test
+  public void extensionKeysFromExtensionsXml() throws Exception {
+    var root = new SAXBuilder().build(new StringReader(EXTENSIONS_XML)).getRootElement();
+
+    assertThat(RangeResolverMojo.extensionKeys(root)).containsExactly("eu.maveniverse.maven.nisse:extension");
+  }
+
+  @Test
+  public void rewriteExtensionsUpdatesVersion() throws Exception {
+    var root = new SAXBuilder()
+        .build(new StringReader(EXTENSIONS_XML.replace(
+            "<extensions>", "<extensions xmlns=\"http://maven.apache.org/EXTENSIONS/1.2.0\">")))
+        .getRootElement();
+
+    var nisse = Resolved.of(
+        "",
+        MAVEN,
+        "eu.maveniverse.maven.nisse",
+        "extension",
+        "0.9.12",
+        none(),
+        "",
+        Range.fixed("0.9.12"),
+        RESOLVED);
+
+    var changed = RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root);
+
+    assertThat(changed).isTrue();
+    assertThat(root.getChild("extension", root.getNamespace()).getChildText("version", root.getNamespace()))
+        .isEqualTo("0.9.12");
+
+    assertThat(RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root))
+        .isFalse();
   }
 }
