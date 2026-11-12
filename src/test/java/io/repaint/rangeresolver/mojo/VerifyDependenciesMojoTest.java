@@ -1,10 +1,10 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.repaint.rangeresolver.mojo.VerifyDependenciesMojo.expandVersionToUpperRange;
 
-import static com.smxemail.rangeresolver.mojo.VerifyDependenciesMojo.expandVersionToUpperRange;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class VerifyDependenciesMojoTest {
   @Test

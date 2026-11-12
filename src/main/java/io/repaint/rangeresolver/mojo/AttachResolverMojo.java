@@ -1,9 +1,9 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
+
+import io.repaint.rangeresolver.lang.RepositoryResolver;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
-
-import com.smxemail.rangeresolver.lang.RepositoryResolver;
 
 import java.io.File;
 

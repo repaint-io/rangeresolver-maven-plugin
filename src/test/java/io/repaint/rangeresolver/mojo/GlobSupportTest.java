@@ -1,11 +1,11 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.repaint.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
 
-import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class GlobSupportTest {
   @ParameterizedTest

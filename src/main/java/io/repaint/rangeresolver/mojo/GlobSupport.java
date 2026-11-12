@@ -1,4 +1,4 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import java.util.regex.Pattern;
 

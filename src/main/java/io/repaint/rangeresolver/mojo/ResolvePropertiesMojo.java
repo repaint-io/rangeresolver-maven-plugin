@@ -1,25 +1,25 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import dev.zazr.collection.HashSet;
 import dev.zazr.control.Option;
+
+import io.repaint.rangeresolver.api.Range;
+import io.repaint.rangeresolver.api.RangeResolver;
+import io.repaint.rangeresolver.api.Resolved;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.project.MavenProject;
 
-import com.smxemail.rangeresolver.api.Range;
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.Resolved;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
-import static com.smxemail.rangeresolver.api.ArtifactType.MAVEN;
-import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;
-import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
+import static io.repaint.rangeresolver.api.ArtifactType.MAVEN;
+import static io.repaint.rangeresolver.api.ResolvedType.RESOLVED;
+import static io.repaint.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

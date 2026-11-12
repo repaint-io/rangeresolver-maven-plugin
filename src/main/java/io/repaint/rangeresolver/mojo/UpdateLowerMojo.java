@@ -1,6 +1,12 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import dev.zazr.collection.List;
+
+import io.repaint.rangeresolver.api.RangeResolver;
+import io.repaint.rangeresolver.api.ResolutionResult;
+import io.repaint.rangeresolver.api.Resolve;
+import io.repaint.rangeresolver.api.Resolved;
+import io.repaint.rangeresolver.lang.RepositoryResolver;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
@@ -10,19 +16,13 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.ResolutionResult;
-import com.smxemail.rangeresolver.api.Resolve;
-import com.smxemail.rangeresolver.api.Resolved;
-import com.smxemail.rangeresolver.lang.RepositoryResolver;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Map;
 
-import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
-import static com.smxemail.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+import static io.repaint.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
+import static io.repaint.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
+import static io.repaint.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

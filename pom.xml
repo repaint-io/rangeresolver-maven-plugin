@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.smxemail</groupId>
+  <groupId>io.repaint</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
   <version>2.0.6-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
@@ -31,21 +31,21 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.smxemail</groupId>
-      <artifactId>com.smxemail.rangeresolver</artifactId>
-      <version>1.1.56</version>
-      <exclusions></exclusions>
-    </dependency>
-    <dependency>
       <groupId>dev.zazr</groupId>
       <artifactId>zazr-core</artifactId>
-      <version>0.4.0</version>
+      <version>0.5.0</version>
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.repaint</groupId>
+      <artifactId>io.repaint.rangeresolver</artifactId>
+      <version>1.1.57-SNAPSHOT</version>
+      <exclusions></exclusions>
     </dependency>
     <dependency>
       <groupId>org.antlr</groupId>
@@ -232,8 +232,8 @@
         <extensions>true</extensions>
         <configuration>
           <tiles>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.132]</tile>
-            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.80]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.134]</tile>
+            <tile>com.smxemail.tiles:com.smxemail.tiles.enforcements:[5.0.84]</tile>
           </tiles>
         </configuration>
       </plugin>

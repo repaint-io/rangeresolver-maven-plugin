@@ -1,7 +1,12 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import dev.zazr.collection.List;
 import dev.zazr.control.Option.Some;
+
+import io.repaint.rangeresolver.api.RangeResolver;
+import io.repaint.rangeresolver.api.ResolutionResult;
+import io.repaint.rangeresolver.api.Resolved;
+import io.repaint.rangeresolver.lang.RepositoryResolver;
 
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
@@ -24,11 +29,6 @@ import org.jdom2.output.Format;
 import org.jdom2.output.LineSeparator;
 import org.jdom2.output.XMLOutputter;
 
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.ResolutionResult;
-import com.smxemail.rangeresolver.api.Resolved;
-import com.smxemail.rangeresolver.lang.RepositoryResolver;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,11 +43,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.smxemail.rangeresolver.api.ArtifactType.DOCKER;
-import static com.smxemail.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
-import static com.smxemail.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
-import static com.smxemail.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
-import static com.smxemail.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
+import static io.repaint.rangeresolver.api.ArtifactType.DOCKER;
+import static io.repaint.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
+import static io.repaint.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
+import static io.repaint.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
+import static io.repaint.rangeresolver.mojo.GlobSupport.convertGlobToRegex;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 

@@ -1,16 +1,16 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import com.google.common.collect.HashMultimap;
 
 import dev.zazr.collection.HashSet;
 import dev.zazr.collection.List;
 
+import io.repaint.rangeresolver.api.Range;
+import io.repaint.rangeresolver.api.RangeResolver;
+import io.repaint.rangeresolver.api.Resolved;
+
 import org.jdom2.input.SAXBuilder;
 import org.junit.jupiter.api.Test;
-
-import com.smxemail.rangeresolver.api.Range;
-import com.smxemail.rangeresolver.api.RangeResolver;
-import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.StringReader;
 import java.util.Map;
@@ -18,11 +18,11 @@ import java.util.Set;
 
 import static dev.zazr.control.Option.none;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static io.repaint.rangeresolver.api.ArtifactType.DOCKER;
+import static io.repaint.rangeresolver.api.ArtifactType.MAVEN;
+import static io.repaint.rangeresolver.api.ResolvedType.RESOLVED;
 
-import static com.smxemail.rangeresolver.api.ArtifactType.DOCKER;
-import static com.smxemail.rangeresolver.api.ArtifactType.MAVEN;
-import static com.smxemail.rangeresolver.api.ResolvedType.RESOLVED;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RangeResolverMojoTest {
 

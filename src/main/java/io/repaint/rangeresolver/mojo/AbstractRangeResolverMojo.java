@@ -1,8 +1,10 @@
-package com.smxemail.rangeresolver.mojo;
+package io.repaint.rangeresolver.mojo;
 
 import com.google.common.base.MoreObjects;
 
 import dev.zazr.collection.List;
+
+import io.repaint.rangeresolver.api.Resolved;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -22,8 +24,6 @@ import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.repository.ScmRepository;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-
-import com.smxemail.rangeresolver.api.Resolved;
 
 import java.io.File;
 import java.io.IOException;
