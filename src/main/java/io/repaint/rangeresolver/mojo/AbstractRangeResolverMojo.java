@@ -84,9 +84,20 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
   }
 
   public static File resolveDepsFile(MavenSession mavenSession) {
-    File pomFile = mavenSession.getTopLevelProject().getFile().getAbsoluteFile();
+    File pomFile = sourcePomFile(mavenSession);
     String pomBaseName = pomFile.getName().substring(0, pomFile.getName().lastIndexOf(".") + 1);
-    return new File(pomBaseName + "deps").getAbsoluteFile();
+    return new File(pomFile.getParentFile(), pomBaseName + "deps");
+  }
+
+  /**
+   * The POM the build was started with. Extensions may point the top-level project at a generated file, so the
+   * project's own file is not used.
+   */
+  static File sourcePomFile(MavenSession mavenSession) {
+    File requestedPom = mavenSession.getRequest().getPom();
+    return requestedPom != null
+        ? requestedPom.getAbsoluteFile()
+        : new File(mavenSession.getTopLevelProject().getBasedir(), "pom.xml");
   }
 
   protected void commitChangesToDependencies(String message, File file) throws MojoExecutionException {
@@ -181,7 +192,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
   protected String getSourceReference(MavenSession session) {
     try {
-      File pomFile = session.getTopLevelProject().getFile();
+      File pomFile = sourcePomFile(session);
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       DocumentBuilder db = dbf.newDocumentBuilder();
       Document doc = db.parse(pomFile);
