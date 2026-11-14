@@ -137,13 +137,14 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                             allowSnapshots);
 
                     RepositoryResolver repositoryResolver = createRepositoryResolver(
-                            repositorySystem,
-                            repositorySystemSession,
-                            getLog()::info,
-                            getLog()::warn,
-                            allowUnlocked,
-                            allowSnapshots,
-                            updateSnapshots);
+                                    repositorySystem,
+                                    repositorySystemSession,
+                                    getLog()::info,
+                                    getLog()::warn,
+                                    allowUnlocked,
+                                    allowSnapshots,
+                                    updateSnapshots)
+                            .withCooldownDays(cooldownDays);
 
                     ResolutionResult resolvedThings =
                             repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);

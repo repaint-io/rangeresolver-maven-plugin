@@ -49,13 +49,14 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
                             allowUnlocked,
                             allowSnapshots);
                     RepositoryResolver repositoryResolver = createRepositoryResolver(
-                            repositorySystem,
-                            repositorySystemSession,
-                            getLog()::info,
-                            getLog()::warn,
-                            allowUnlocked,
-                            allowSnapshots,
-                            updateSnapshots);
+                                    repositorySystem,
+                                    repositorySystemSession,
+                                    getLog()::info,
+                                    getLog()::warn,
+                                    allowUnlocked,
+                                    allowSnapshots,
+                                    updateSnapshots)
+                            .withCooldownDays(cooldownDays);
 
                     ResolutionResult resolutionResult =
                             repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);

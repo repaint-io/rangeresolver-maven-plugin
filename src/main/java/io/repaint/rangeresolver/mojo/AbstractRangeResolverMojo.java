@@ -63,6 +63,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     @Parameter(property = "allowSnapshots")
     String allowSnapshots = "";
 
+    /// The number of days a version must have been published before it is resolved, or zero for no cooldown.
+    @Parameter(property = "cooldownDays")
+    int cooldownDays = 0;
+
     @Parameter(defaultValue = "${session}", readonly = true)
     MavenSession mavenSession;
 
