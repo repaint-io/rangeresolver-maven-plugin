@@ -53,743 +53,743 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "resolve-deps", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class RangeResolverMojo extends AbstractRangeResolverMojo {
-  public static final Namespace NAMESPACE = Namespace.getNamespace("http://maven.apache.org/POM/4.0.0");
+    public static final Namespace NAMESPACE = Namespace.getNamespace("http://maven.apache.org/POM/4.0.0");
 
-  public static final String BUILD = "build";
+    public static final String BUILD = "build";
 
-  public static final String PLUGINS = "plugins";
+    public static final String PLUGINS = "plugins";
 
-  public static final String PLUGIN_MANAGEMENT = "pluginManagement";
+    public static final String PLUGIN_MANAGEMENT = "pluginManagement";
 
-  public static final String DEPENDENCIES = "dependencies";
+    public static final String DEPENDENCIES = "dependencies";
 
-  public static final String GROUP_ID = "groupId";
+    public static final String GROUP_ID = "groupId";
 
-  public static final String ARTIFACT_ID = "artifactId";
+    public static final String ARTIFACT_ID = "artifactId";
 
-  public static final String VERSION = "version";
+    public static final String VERSION = "version";
 
-  public static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
+    public static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
 
-  public static final String PARENT = "parent";
+    public static final String PARENT = "parent";
 
-  public static final String PROFILES = "profiles";
+    public static final String PROFILES = "profiles";
 
-  public static final String PROPERTIES = "properties";
+    public static final String PROPERTIES = "properties";
 
-  public static final String DEPENDENCIES_SHA1 = "pom.deps.sha1";
+    public static final String DEPENDENCIES_SHA1 = "pom.deps.sha1";
 
-  public static final String PROFILE = "profile";
+    public static final String PROFILE = "profile";
 
-  public static final String EXCLUSIONS = "exclusions";
+    public static final String EXCLUSIONS = "exclusions";
 
-  public static final String EXCLUSION = "exclusion";
+    public static final String EXCLUSION = "exclusion";
 
-  public static final String SCOPE = "scope";
+    public static final String SCOPE = "scope";
 
-  public static final String CONFIGURATION = "configuration";
+    public static final String CONFIGURATION = "configuration";
 
-  public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
+    public static final String ANNOTATION_PROCESSOR_PATHS = "annotationProcessorPaths";
 
-  public static final String EXTENSION = "extension";
+    public static final String EXTENSION = "extension";
 
-  public static final String EXTENSIONS_XML = ".mvn/extensions.xml";
+    public static final String EXTENSIONS_XML = ".mvn/extensions.xml";
 
-  private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*)(@sha256)?:*([a-zA-Z0-9\\-]*)(.*)");
+    private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*)(@sha256)?:*([a-zA-Z0-9\\-]*)(.*)");
 
-  @Component
-  private RepositorySystem repositorySystem;
+    @Component
+    private RepositorySystem repositorySystem;
 
-  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-  RepositorySystemSession repositorySystemSession;
+    @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
+    RepositorySystemSession repositorySystemSession;
 
-  @Parameter(property = "relaxedScopes")
-  public String relaxedScopes = "";
+    @Parameter(property = "relaxedScopes")
+    public String relaxedScopes = "";
 
-  @Parameter(property = "relaxedGavs")
-  public String relaxedGavs = "";
+    @Parameter(property = "relaxedGavs")
+    public String relaxedGavs = "";
 
-  @Parameter(property = "testExclusions")
-  public java.util.List<String> testExclusions = new ArrayList<>();
+    @Parameter(property = "testExclusions")
+    public java.util.List<String> testExclusions = new ArrayList<>();
 
-  @Parameter
-  public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
+    @Parameter
+    public java.util.List<String> retainUnusedDependencies = new ArrayList<>();
 
-  @Parameter(property = "prettyPrintPomFormat")
-  public boolean prettyPrintPomFormat = false;
+    @Parameter(property = "prettyPrintPomFormat")
+    public boolean prettyPrintPomFormat = false;
 
-  private static final Pattern exclusionScopes =
-      Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern exclusionScopes =
+            Pattern.compile("(compile|runtime|provided)", Pattern.CASE_INSENSITIVE);
 
-  @Override
-  public void execute() throws MojoExecutionException {
-    if (project.isExecutionRoot()) {
-      File deps = resolveDepsFile();
-      if (deps.exists()) {
-        getLog().info("Updating resolved ranges...");
+    @Override
+    public void execute() throws MojoExecutionException {
+        if (project.isExecutionRoot()) {
+            File deps = resolveDepsFile();
+            if (deps.exists()) {
+                getLog().info("Updating resolved ranges...");
+                try {
+                    boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
+                    String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
+                    RangeResolver rangeResolver = parseRangeResolver(
+                            resolutionSource,
+                            Files.newBufferedReader(deps.toPath(), UTF_8),
+                            allowUnlocked,
+                            allowSnapshots);
+
+                    RepositoryResolver repositoryResolver = createRepositoryResolver(
+                            repositorySystem,
+                            repositorySystemSession,
+                            getLog()::info,
+                            getLog()::warn,
+                            allowUnlocked,
+                            allowSnapshots,
+                            updateSnapshots);
+
+                    ResolutionResult resolvedThings =
+                            repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
+
+                    Predicate<Resolved> excludeReactorProjects =
+                            buildProjectKeysPredicate().negate();
+
+                    List<Resolved> blacklistedExcludingReactorProjects =
+                            resolvedThings.blacklisted().filter(excludeReactorProjects);
+
+                    List<Resolved> deprecatedExcludingReactorProjects =
+                            resolvedThings.deprecated().filter(excludeReactorProjects);
+
+                    List<Resolved> resolvedExcludingReactorProjects =
+                            resolvedThings.resolved().filter(excludeReactorProjects);
+
+                    List<Resolved> lockedExcludingReactorProjects =
+                            resolvedThings.locked().filter(excludeReactorProjects);
+
+                    File baseDir = deps.getAbsoluteFile().getParentFile();
+
+                    if (filterUnusedDependencies) {
+                        Predicate<Resolved> excludeUnusedDependencies = buildMavenArtifactPredicate()
+                                .or(buildProjectDependenciesPredicate())
+                                .or(buildProjectPropertyPredicate())
+                                .or(buildPomFileReferencesPredicate(baseDir))
+                                .or(buildExtensionsReferencesPredicate(baseDir));
+
+                        resolvedExcludingReactorProjects =
+                                resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
+                        lockedExcludingReactorProjects =
+                                lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
+                        deprecatedExcludingReactorProjects =
+                                deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
+                        blacklistedExcludingReactorProjects =
+                                blacklistedExcludingReactorProjects.filter(excludeUnusedDependencies);
+                    }
+
+                    if (!allowBlacklistedDependencies && !blacklistedExcludingReactorProjects.isEmpty()) {
+                        throwBlacklistedException(blacklistedExcludingReactorProjects);
+                        return;
+                    }
+
+                    if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
+                        throwDeprecationException(deprecatedExcludingReactorProjects);
+                        return;
+                    }
+
+                    writeRangeResolveSource(
+                            rangeResolver
+                                    .withBlacklisted(blacklistedExcludingReactorProjects)
+                                    .withDeprecated(deprecatedExcludingReactorProjects)
+                                    .withResolved(resolvedExcludingReactorProjects)
+                                    .withLocked(lockedExcludingReactorProjects),
+                            Files.newBufferedWriter(deps.toPath(), UTF_8));
+
+                    RangeResolver projectResolver = rangeResolver
+                            .withDeprecated(deprecatedExcludingReactorProjects)
+                            .withResolved(resolvedExcludingReactorProjects)
+                            .withLocked(lockedExcludingReactorProjects);
+
+                    Set<File> allFiles = rewritePomFiles(projectResolver, baseDir);
+                    Set<File> dockerFiles = rewriteDockerFiles(projectResolver, baseDir);
+                    Set<File> extensionFiles = rewriteExtensionsFile(projectResolver, baseDir);
+
+                    allFiles.addAll(dockerFiles);
+                    allFiles.addAll(extensionFiles);
+                    allFiles.add(deps);
+
+                    commitChangesToDependencies("Updated dependency ranges.", baseDir, allFiles);
+
+                } catch (Exception e) {
+                    throw new MojoExecutionException(e.getMessage(), e);
+                }
+            } else {
+                getLog().warn("Skipping range resolution - deps file is missing.");
+            }
+        }
+    }
+
+    private Set<File> rewritePomFiles(RangeResolver pomResolver, File baseDir) throws IOException {
+        Set<File> pomFiles = findPomFiles(baseDir);
+
+        for (File file : pomFiles) {
+            rewritePom(pomResolver, file);
+        }
+
+        return new HashSet<>(pomFiles);
+    }
+
+    private Set<File> rewriteDockerFiles(RangeResolver pomResolver, File baseDir) throws IOException {
+        Set<File> dockerFiles = findDockerFiles(baseDir);
+
+        for (File file : dockerFiles) {
+            rewriteDockerFile(pomResolver, file);
+        }
+
+        return dockerFiles;
+    }
+
+    private Set<File> rewriteExtensionsFile(RangeResolver resolver, File baseDir) throws IOException {
+        File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+        if (!extensionsFile.isFile()) {
+            return new HashSet<>();
+        }
+
         try {
-          boolean updateSnapshots = mavenSession.getRequest().isUpdateSnapshots();
-          String resolutionSource = gav(project).replaceAll("-SNAPSHOT", "");
-          RangeResolver rangeResolver = parseRangeResolver(
-              resolutionSource,
-              Files.newBufferedReader(deps.toPath(), UTF_8),
-              allowUnlocked,
-              allowSnapshots);
+            Document document = new SAXBuilder().build(extensionsFile);
+            if (!rewriteExtensions(resolvedItemsFor(resolver), resolveReactorKeys(), document.getRootElement())) {
+                return new HashSet<>();
+            }
 
-          RepositoryResolver repositoryResolver = createRepositoryResolver(
-              repositorySystem,
-              repositorySystemSession,
-              getLog()::info,
-              getLog()::warn,
-              allowUnlocked,
-              allowSnapshots,
-              updateSnapshots);
+            File originalFile = new File(extensionsFile.getAbsolutePath() + ".orig");
+            if (originalFile.exists()) {
+                originalFile.delete();
+            }
+            Files.copy(extensionsFile.toPath(), originalFile.toPath());
 
-          ResolutionResult resolvedThings =
-              repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);
-
-          Predicate<Resolved> excludeReactorProjects =
-              buildProjectKeysPredicate().negate();
-
-          List<Resolved> blacklistedExcludingReactorProjects =
-              resolvedThings.blacklisted().filter(excludeReactorProjects);
-
-          List<Resolved> deprecatedExcludingReactorProjects =
-              resolvedThings.deprecated().filter(excludeReactorProjects);
-
-          List<Resolved> resolvedExcludingReactorProjects =
-              resolvedThings.resolved().filter(excludeReactorProjects);
-
-          List<Resolved> lockedExcludingReactorProjects =
-              resolvedThings.locked().filter(excludeReactorProjects);
-
-          File baseDir = deps.getAbsoluteFile().getParentFile();
-
-          if (filterUnusedDependencies) {
-            Predicate<Resolved> excludeUnusedDependencies = buildMavenArtifactPredicate()
-                .or(buildProjectDependenciesPredicate())
-                .or(buildProjectPropertyPredicate())
-                .or(buildPomFileReferencesPredicate(baseDir))
-                .or(buildExtensionsReferencesPredicate(baseDir));
-
-            resolvedExcludingReactorProjects =
-                resolvedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            lockedExcludingReactorProjects =
-                lockedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            deprecatedExcludingReactorProjects =
-                deprecatedExcludingReactorProjects.filter(excludeUnusedDependencies);
-            blacklistedExcludingReactorProjects =
-                blacklistedExcludingReactorProjects.filter(excludeUnusedDependencies);
-          }
-
-          if (!allowBlacklistedDependencies && !blacklistedExcludingReactorProjects.isEmpty()) {
-            throwBlacklistedException(blacklistedExcludingReactorProjects);
-            return;
-          }
-
-          if (!allowDeprecatedDependencies && !deprecatedExcludingReactorProjects.isEmpty()) {
-            throwDeprecationException(deprecatedExcludingReactorProjects);
-            return;
-          }
-
-          writeRangeResolveSource(
-              rangeResolver
-                  .withBlacklisted(blacklistedExcludingReactorProjects)
-                  .withDeprecated(deprecatedExcludingReactorProjects)
-                  .withResolved(resolvedExcludingReactorProjects)
-                  .withLocked(lockedExcludingReactorProjects),
-              Files.newBufferedWriter(deps.toPath(), UTF_8));
-
-          RangeResolver projectResolver = rangeResolver
-              .withDeprecated(deprecatedExcludingReactorProjects)
-              .withResolved(resolvedExcludingReactorProjects)
-              .withLocked(lockedExcludingReactorProjects);
-
-          Set<File> allFiles = rewritePomFiles(projectResolver, baseDir);
-          Set<File> dockerFiles = rewriteDockerFiles(projectResolver, baseDir);
-          Set<File> extensionFiles = rewriteExtensionsFile(projectResolver, baseDir);
-
-          allFiles.addAll(dockerFiles);
-          allFiles.addAll(extensionFiles);
-          allFiles.add(deps);
-
-          commitChangesToDependencies("Updated dependency ranges.", baseDir, allFiles);
-
-        } catch (Exception e) {
-          throw new MojoExecutionException(e.getMessage(), e);
+            getLog().info("Rewriting extensions in " + EXTENSIONS_XML);
+            try (var writer = Files.newBufferedWriter(extensionsFile.toPath(), UTF_8)) {
+                new XMLOutputter(getPomRewriteFormat()).output(document, writer);
+            }
+            return new HashSet<>(Set.of(extensionsFile));
+        } catch (JDOMException e) {
+            throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
         }
-      } else {
-        getLog().warn("Skipping range resolution - deps file is missing.");
-      }
-    }
-  }
-
-  private Set<File> rewritePomFiles(RangeResolver pomResolver, File baseDir) throws IOException {
-    Set<File> pomFiles = findPomFiles(baseDir);
-
-    for (File file : pomFiles) {
-      rewritePom(pomResolver, file);
     }
 
-    return new HashSet<>(pomFiles);
-  }
-
-  private Set<File> rewriteDockerFiles(RangeResolver pomResolver, File baseDir) throws IOException {
-    Set<File> dockerFiles = findDockerFiles(baseDir);
-
-    for (File file : dockerFiles) {
-      rewriteDockerFile(pomResolver, file);
-    }
-
-    return dockerFiles;
-  }
-
-  private Set<File> rewriteExtensionsFile(RangeResolver resolver, File baseDir) throws IOException {
-    File extensionsFile = new File(baseDir, EXTENSIONS_XML);
-    if (!extensionsFile.isFile()) {
-      return new HashSet<>();
-    }
-
-    try {
-      Document document = new SAXBuilder().build(extensionsFile);
-      if (!rewriteExtensions(resolvedItemsFor(resolver), resolveReactorKeys(), document.getRootElement())) {
-        return new HashSet<>();
-      }
-
-      File originalFile = new File(extensionsFile.getAbsolutePath() + ".orig");
-      if (originalFile.exists()) {
-        originalFile.delete();
-      }
-      Files.copy(extensionsFile.toPath(), originalFile.toPath());
-
-      getLog().info("Rewriting extensions in " + EXTENSIONS_XML);
-      try (var writer = Files.newBufferedWriter(extensionsFile.toPath(), UTF_8)) {
-        new XMLOutputter(getPomRewriteFormat()).output(document, writer);
-      }
-      return new HashSet<>(Set.of(extensionsFile));
-    } catch (JDOMException e) {
-      throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Rewrites the {@code <version>} of each {@code <extension>} that has a resolved version. Extensions do not support
-   * version ranges, so the plain resolved version is written.
-   *
-   * @return true if any version was changed
-   */
-  static boolean rewriteExtensions(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element root) {
-    Namespace ns = root.getNamespace();
-    boolean changed = false;
-    for (Element extension : root.getChildren(EXTENSION, ns)) {
-      String key = String.format(
-          KEY_FORMAT, extension.getChildTextTrim(GROUP_ID, ns), extension.getChildTextTrim(ARTIFACT_ID, ns));
-      Element version = extension.getChild(VERSION, ns);
-      Resolved resolved = resolvedItems.get(key);
-      if (version != null
-          && resolved != null
-          && !reactorKeys.contains(key)
-          && !resolved.version().equals(version.getTextTrim())) {
-        version.setText(resolved.version());
-        changed = true;
-      }
-    }
-    return changed;
-  }
-
-  static Set<String> extensionKeys(Element root) {
-    Namespace ns = root.getNamespace();
-    Set<String> keys = new HashSet<>();
-    for (Element extension : root.getChildren(EXTENSION, ns)) {
-      String groupId = extension.getChildTextTrim(GROUP_ID, ns);
-      String artifactId = extension.getChildTextTrim(ARTIFACT_ID, ns);
-      if (groupId != null && artifactId != null) {
-        keys.add(String.format(KEY_FORMAT, groupId, artifactId));
-      }
-    }
-    return keys;
-  }
-
-  /**
-   * Keys of the build extensions declared in {@code .mvn/extensions.xml}, which are not part of the Maven project
-   * model.
-   */
-  private Predicate<Resolved> buildExtensionsReferencesPredicate(File baseDir) throws IOException {
-    File extensionsFile = new File(baseDir, EXTENSIONS_XML);
-    if (!extensionsFile.isFile()) {
-      return r -> false;
-    }
-    try {
-      Set<String> keys =
-          extensionKeys(new SAXBuilder().build(extensionsFile).getRootElement());
-      return r -> keys.contains(r.key());
-    } catch (JDOMException e) {
-      throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
-    }
-  }
-
-  private Set<File> findPomFiles(File baseDir) throws IOException {
-    try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
-      String name = path.toFile().getName();
-      return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
-    })) {
-      return stream.map(Path::toFile).collect(Collectors.toSet());
-    }
-  }
-
-  private Set<File> findDockerFiles(File baseDir) throws IOException {
-    try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
-      String name = path.toFile().getName();
-      return name.startsWith("Dockerfile") && !name.endsWith(".orig") && attr.isRegularFile();
-    })) {
-      return stream.map(Path::toFile).collect(Collectors.toSet());
-    }
-  }
-
-  private Predicate<Resolved> buildMavenArtifactPredicate() {
-    return r -> r.artifactType() == DOCKER;
-  }
-
-  private Predicate<Resolved> buildProjectPropertyPredicate() {
-    return r -> project.getProperties().containsKey(r.propertyName());
-  }
-
-  private Predicate<Resolved> buildProjectDependenciesPredicate() {
-    Set<String> usedDependencyKeys = mavenSession.getAllProjects().stream()
-        .flatMap(p -> {
-          List<String> keys = List.<String>empty()
-              .appendAll(List.ofAll(retainUnusedDependencies))
-              .appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())))
-              .appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
-
-          PluginManagement pluginManagement = p.getPluginManagement();
-          if (pluginManagement != null) {
-            keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
-          }
-
-          if (p.getParent() != null) {
-            keys = keys.append(
-                keyFor(p.getParent().getGroupId(), p.getParent().getArtifactId()));
-          }
-
-          return keys.stream().distinct();
-        })
-        .collect(Collectors.toSet());
-
-    return r -> usedDependencyKeys.contains(r.key());
-  }
-
-  /**
-   * Keys and property names referenced directly in the pom.xml/tile.xml files that will be rewritten. The Maven model
-   * alone misses tile.xml content (a tile project doesn't apply its own tile) and plugins/dependencies in inactive
-   * profiles.
-   */
-  private Predicate<Resolved> buildPomFileReferencesPredicate(File baseDir) throws IOException {
-    Set<String> referencedKeys = new HashSet<>();
-    Set<String> propertyNames = new HashSet<>();
-    for (File pomFile : findPomFiles(baseDir)) {
-      try {
-        Element root = new SAXBuilder().build(pomFile).getRootElement();
-        referencedKeys.addAll(referencedKeys(root));
-        propertyNames.addAll(propertyNames(root));
-      } catch (JDOMException e) {
-        throw new IOException("Unable to parse " + pomFile + ": " + e.getMessage(), e);
-      }
-    }
-    return r -> referencedKeys.contains(r.key()) || propertyNames.contains(r.propertyName());
-  }
-
-  static Set<String> referencedKeys(Element root) {
-    Set<String> keys = new HashSet<>();
-    for (Element element : root.getDescendants(Filters.element())) {
-      String groupId = element.getChildTextTrim(GROUP_ID, NAMESPACE);
-      String artifactId = element.getChildTextTrim(ARTIFACT_ID, NAMESPACE);
-      if (groupId != null && artifactId != null) {
-        keys.add(String.format(KEY_FORMAT, groupId, artifactId));
-      }
-      if ("tile".equals(element.getName())) {
-        String[] parts = element.getTextTrim().split(":");
-        if (parts.length >= 2) {
-          keys.add(String.format(KEY_FORMAT, parts[0], parts[1]));
+    /**
+     * Rewrites the {@code <version>} of each {@code <extension>} that has a resolved version. Extensions do not support
+     * version ranges, so the plain resolved version is written.
+     *
+     * @return true if any version was changed
+     */
+    static boolean rewriteExtensions(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element root) {
+        Namespace ns = root.getNamespace();
+        boolean changed = false;
+        for (Element extension : root.getChildren(EXTENSION, ns)) {
+            String key = String.format(
+                    KEY_FORMAT, extension.getChildTextTrim(GROUP_ID, ns), extension.getChildTextTrim(ARTIFACT_ID, ns));
+            Element version = extension.getChild(VERSION, ns);
+            Resolved resolved = resolvedItems.get(key);
+            if (version != null
+                    && resolved != null
+                    && !reactorKeys.contains(key)
+                    && !resolved.version().equals(version.getTextTrim())) {
+                version.setText(resolved.version());
+                changed = true;
+            }
         }
-      }
+        return changed;
     }
-    return keys;
-  }
 
-  static Set<String> propertyNames(Element root) {
-    Set<String> names = new HashSet<>();
-    for (Element properties : root.getDescendants(Filters.element(PROPERTIES, NAMESPACE))) {
-      for (Element property : properties.getChildren()) {
-        names.add(property.getName());
-      }
+    static Set<String> extensionKeys(Element root) {
+        Namespace ns = root.getNamespace();
+        Set<String> keys = new HashSet<>();
+        for (Element extension : root.getChildren(EXTENSION, ns)) {
+            String groupId = extension.getChildTextTrim(GROUP_ID, ns);
+            String artifactId = extension.getChildTextTrim(ARTIFACT_ID, ns);
+            if (groupId != null && artifactId != null) {
+                keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+            }
+        }
+        return keys;
     }
-    return names;
-  }
 
-  private List<String> resolveDependencyKeys(List<Dependency> dependencies) {
-    return dependencies.map(d -> keyFor(d.getGroupId(), d.getArtifactId()));
-  }
+    /**
+     * Keys of the build extensions declared in {@code .mvn/extensions.xml}, which are not part of the Maven project
+     * model.
+     */
+    private Predicate<Resolved> buildExtensionsReferencesPredicate(File baseDir) throws IOException {
+        File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+        if (!extensionsFile.isFile()) {
+            return r -> false;
+        }
+        try {
+            Set<String> keys =
+                    extensionKeys(new SAXBuilder().build(extensionsFile).getRootElement());
+            return r -> keys.contains(r.key());
+        } catch (JDOMException e) {
+            throw new IOException("Unable to parse " + extensionsFile + ": " + e.getMessage(), e);
+        }
+    }
 
-  private List<String> resolvePluginKeys(List<Plugin> plugins) {
-    return plugins.flatMap(plugin -> {
-      List<String> append = resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
-          .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+    private Set<File> findPomFiles(File baseDir) throws IOException {
+        try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
+            String name = path.toFile().getName();
+            return ("pom.xml".equals(name) || "tile.xml".equals(name)) && attr.isRegularFile();
+        })) {
+            return stream.map(Path::toFile).collect(Collectors.toSet());
+        }
+    }
 
-      if (plugin.getArtifactId().equals("tiles-maven-plugin")) {
-        append = append.appendAll(extractTileKeysFromConfiguration(plugin));
-      }
-      return append;
-    });
-  }
+    private Set<File> findDockerFiles(File baseDir) throws IOException {
+        try (Stream<Path> stream = Files.find(baseDir.toPath(), 10, (path, attr) -> {
+            String name = path.toFile().getName();
+            return name.startsWith("Dockerfile") && !name.endsWith(".orig") && attr.isRegularFile();
+        })) {
+            return stream.map(Path::toFile).collect(Collectors.toSet());
+        }
+    }
 
-  private List<String> extractTileKeysFromConfiguration(Plugin plugin) {
-    Xpp3Dom config = (Xpp3Dom) plugin.getConfiguration();
-    if (config != null) {
-      Xpp3Dom tiles = config.getChild("tiles");
-      if (tiles != null) {
-        return List.of(tiles.getChildren()).map(tile -> {
-          String[] parts = tile.getValue().split(":");
-          return keyFor(parts[0], parts[1]);
+    private Predicate<Resolved> buildMavenArtifactPredicate() {
+        return r -> r.artifactType() == DOCKER;
+    }
+
+    private Predicate<Resolved> buildProjectPropertyPredicate() {
+        return r -> project.getProperties().containsKey(r.propertyName());
+    }
+
+    private Predicate<Resolved> buildProjectDependenciesPredicate() {
+        Set<String> usedDependencyKeys = mavenSession.getAllProjects().stream()
+                .flatMap(p -> {
+                    List<String> keys = List.<String>empty()
+                            .appendAll(List.ofAll(retainUnusedDependencies))
+                            .appendAll(resolveDependencyKeys(List.ofAll(p.getDependencies())))
+                            .appendAll(resolvePluginKeys(List.ofAll(p.getBuildPlugins())));
+
+                    PluginManagement pluginManagement = p.getPluginManagement();
+                    if (pluginManagement != null) {
+                        keys = keys.appendAll(resolvePluginKeys(List.ofAll(pluginManagement.getPlugins())));
+                    }
+
+                    if (p.getParent() != null) {
+                        keys = keys.append(
+                                keyFor(p.getParent().getGroupId(), p.getParent().getArtifactId()));
+                    }
+
+                    return keys.stream().distinct();
+                })
+                .collect(Collectors.toSet());
+
+        return r -> usedDependencyKeys.contains(r.key());
+    }
+
+    /**
+     * Keys and property names referenced directly in the pom.xml/tile.xml files that will be rewritten. The Maven model
+     * alone misses tile.xml content (a tile project doesn't apply its own tile) and plugins/dependencies in inactive
+     * profiles.
+     */
+    private Predicate<Resolved> buildPomFileReferencesPredicate(File baseDir) throws IOException {
+        Set<String> referencedKeys = new HashSet<>();
+        Set<String> propertyNames = new HashSet<>();
+        for (File pomFile : findPomFiles(baseDir)) {
+            try {
+                Element root = new SAXBuilder().build(pomFile).getRootElement();
+                referencedKeys.addAll(referencedKeys(root));
+                propertyNames.addAll(propertyNames(root));
+            } catch (JDOMException e) {
+                throw new IOException("Unable to parse " + pomFile + ": " + e.getMessage(), e);
+            }
+        }
+        return r -> referencedKeys.contains(r.key()) || propertyNames.contains(r.propertyName());
+    }
+
+    static Set<String> referencedKeys(Element root) {
+        Set<String> keys = new HashSet<>();
+        for (Element element : root.getDescendants(Filters.element())) {
+            String groupId = element.getChildTextTrim(GROUP_ID, NAMESPACE);
+            String artifactId = element.getChildTextTrim(ARTIFACT_ID, NAMESPACE);
+            if (groupId != null && artifactId != null) {
+                keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+            }
+            if ("tile".equals(element.getName())) {
+                String[] parts = element.getTextTrim().split(":");
+                if (parts.length >= 2) {
+                    keys.add(String.format(KEY_FORMAT, parts[0], parts[1]));
+                }
+            }
+        }
+        return keys;
+    }
+
+    static Set<String> propertyNames(Element root) {
+        Set<String> names = new HashSet<>();
+        for (Element properties : root.getDescendants(Filters.element(PROPERTIES, NAMESPACE))) {
+            for (Element property : properties.getChildren()) {
+                names.add(property.getName());
+            }
+        }
+        return names;
+    }
+
+    private List<String> resolveDependencyKeys(List<Dependency> dependencies) {
+        return dependencies.map(d -> keyFor(d.getGroupId(), d.getArtifactId()));
+    }
+
+    private List<String> resolvePluginKeys(List<Plugin> plugins) {
+        return plugins.flatMap(plugin -> {
+            List<String> append = resolveDependencyKeys(List.ofAll(plugin.getDependencies()))
+                    .append(keyFor(plugin.getGroupId(), plugin.getArtifactId()));
+
+            if (plugin.getArtifactId().equals("tiles-maven-plugin")) {
+                append = append.appendAll(extractTileKeysFromConfiguration(plugin));
+            }
+            return append;
         });
-      }
     }
 
-    return List.empty();
-  }
-
-  private Predicate<Resolved> buildProjectKeysPredicate() {
-    Set<String> reactorKeys =
-        mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
-    return r -> reactorKeys.contains(r.key());
-  }
-
-  private void rewriteDockerFile(RangeResolver updated, File dockerFile) throws IOException {
-    List<String> dockerLines = List.ofAll(Files.readAllLines(dockerFile.toPath()));
-
-    var resolvedDockerContents = rewriteDockerLines(updated, dockerLines) + "\n";
-
-    File newDockerFile = new File(dockerFile.getAbsolutePath());
-    File originalFile = new File(dockerFile.getAbsolutePath() + ".orig");
-    if (originalFile.exists()) {
-      originalFile.delete();
-    }
-    dockerFile.renameTo(originalFile);
-
-    Files.write(newDockerFile.toPath(), resolvedDockerContents.getBytes(UTF_8));
-  }
-
-  static String rewriteDockerLines(RangeResolver updated, List<String> dockerLines) {
-
-    var allResolved = dev.zazr.collection.HashSet.<Resolved>empty()
-        .addAll(updated.resolved())
-        .addAll(updated.locked())
-        .addAll(updated.deprecated())
-        .filter(r -> r.artifactType() == DOCKER);
-
-    var versions = allResolved.foldLeft(
-        dev.zazr.collection.HashMap.<String, String>empty(),
-        (map, resolved) -> map.put(resolved.key(), resolved.version()));
-
-    return dockerLines
-        .map(line -> {
-          var matcher = FROM_LINE.matcher(line);
-          if (matcher.matches()) {
-            if (versions.get(matcher.group(1)) instanceof Some(final var version)) {
-              return matcher.replaceAll("FROM $1@%s$4".formatted(version));
-            }
-          }
-          return line;
-        })
-        .mkString("\n");
-  }
-
-  private void rewritePom(RangeResolver updated, File pomFile) {
-    try {
-      Set<String> reactorKeys = resolveReactorKeys();
-      Map<String, Resolved> resolvedItems = resolvedItemsFor(updated);
-
-      Document pomDocument = new SAXBuilder().build(pomFile);
-      Element projectElem = pomDocument.getRootElement();
-
-      rewritePomBuild(resolvedItems, reactorKeys, projectElem);
-      rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
-      rewritePomProperties(resolvedItems, reactorKeys, projectElem);
-
-      // Remove the pom.deps.sha1 property
-      Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
-      if (properties != null) {
-        Element sha1Element = properties.getChild(DEPENDENCIES_SHA1, NAMESPACE);
-        if (sha1Element != null) {
-          sha1Element.detach();
-        }
-      }
-
-      Element parent = projectElem.getChild(PARENT, NAMESPACE);
-      if (parent != null) {
-        Resolved resolved = resolvedItems.get(keyFor(parent));
-        Element version = parent.getChild(VERSION, NAMESPACE);
-        if (resolved != null && version != null) {
-          version.setText(String.format("%s", resolved.version()));
-        }
-      }
-
-      Element profiles = projectElem.getChild(PROFILES, NAMESPACE);
-      if (profiles != null) {
-        List<Element> profileList = List.ofAll(profiles.getChildren(PROFILE, NAMESPACE));
-        for (Element profile : profileList) {
-          rewritePomBuild(resolvedItems, reactorKeys, profile);
-          rewriteDependencyManagement(resolvedItems, reactorKeys, profile);
-          rewritePomDependencies(resolvedItems, reactorKeys, profile);
-          rewritePomProperties(resolvedItems, reactorKeys, profile);
-        }
-      }
-
-      rewriteDependencyManagement(resolvedItems, reactorKeys, projectElem);
-
-      File newPomFile = new File(pomFile.getAbsolutePath());
-      File originalPomFile = new File(pomFile.getAbsolutePath() + ".orig");
-      if (originalPomFile.exists()) {
-        originalPomFile.delete();
-      }
-      pomFile.renameTo(originalPomFile);
-
-      String relativePomFileName = newPomFile
-          .getPath()
-          .substring(project.getBasedir().getPath().length() + 1);
-      getLog().info("Rewriting dependencies in " + relativePomFileName);
-
-      Format format = getPomRewriteFormat();
-
-      new XMLOutputter(format).output(pomDocument, Files.newBufferedWriter(newPomFile.toPath(), UTF_8));
-
-    } catch (IOException | JDOMException e) {
-      throw new RuntimeException(e.getMessage(), e);
-    }
-  }
-
-  private static Map<String, Resolved> resolvedItemsFor(RangeResolver updated) {
-    Map<String, Resolved> resolvedItems = new HashMap<>();
-    resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
-    resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
-    resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
-    resolvedItems.putAll(updated.blacklisted().collect(Resolved.collectByKey));
-    return resolvedItems;
-  }
-
-  private Format getPomRewriteFormat() {
-    if (prettyPrintPomFormat) {
-      return Format.getPrettyFormat()
-          .setLineSeparator(LineSeparator.SYSTEM)
-          .setExpandEmptyElements(false);
-    } else {
-      return Format.getRawFormat().setLineSeparator(LineSeparator.SYSTEM);
-    }
-  }
-
-  private void rewritePomBuild(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
-    Element build = projectElem.getChild(BUILD, NAMESPACE);
-    if (build != null) {
-      rewritePomPlugins(resolvedItems, reactorKeys, build);
-      rewriteTiles(resolvedItems, build);
-      Element pluginManagement = build.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
-      if (pluginManagement != null) {
-        rewritePomPlugins(resolvedItems, reactorKeys, pluginManagement);
-      }
-    }
-  }
-
-  private void rewritePomPlugins(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element build) {
-    Element plugins = build.getChild(PLUGINS, NAMESPACE);
-    if (plugins != null) {
-      for (Element plugin : plugins.getChildren()) {
-        String pluginKey = keyFor(plugin);
-        if (!reactorKeys.contains(pluginKey) && resolvedItems.containsKey(pluginKey)) {
-          Resolved resolved = resolvedItems.get(pluginKey);
-
-          // Replace version
-          Element version = plugin.getChild(VERSION, NAMESPACE);
-          if (version != null) {
-            version.setText(String.format("%s", resolved.version()));
-          }
-
-          // Replace maven-compiler-plugin annotation paths
-          if ("org.apache.maven.plugins:maven-compiler-plugin".equals(pluginKey)) {
-            rewriteAnnotationPaths(resolvedItems, reactorKeys, plugin);
-          }
-          // Replace plugin dependencies
-          rewritePomDependencies(resolvedItems, reactorKeys, plugin);
-        }
-      }
-    }
-  }
-
-  private void rewriteTiles(Map<String, Resolved> resolvedItems, Element build) {
-    Element plugins = build.getChild(PLUGINS, NAMESPACE);
-    if (plugins != null) {
-      for (Element plugin : plugins.getChildren()) {
-        String pluginKey = keyFor(plugin);
-        if ("io.repaint.maven:tiles-maven-plugin".equals(pluginKey)) {
-          Element configuration = plugin.getChild(CONFIGURATION, NAMESPACE);
-          if (configuration != null) {
-            Element tiles = configuration.getChild("tiles", NAMESPACE);
+    private List<String> extractTileKeysFromConfiguration(Plugin plugin) {
+        Xpp3Dom config = (Xpp3Dom) plugin.getConfiguration();
+        if (config != null) {
+            Xpp3Dom tiles = config.getChild("tiles");
             if (tiles != null) {
-              for (Element tile : tiles.getChildren("tile", NAMESPACE)) {
-                String gav = tile.getText();
-                String tileKey = gav.substring(0, gav.lastIndexOf(":"));
-                Resolved resolved = resolvedItems.get(tileKey);
-                if (resolved != null) {
-                  tile.setText(String.format("%s:[%s]", tileKey, resolved.version()));
+                return List.of(tiles.getChildren()).map(tile -> {
+                    String[] parts = tile.getValue().split(":");
+                    return keyFor(parts[0], parts[1]);
+                });
+            }
+        }
+
+        return List.empty();
+    }
+
+    private Predicate<Resolved> buildProjectKeysPredicate() {
+        Set<String> reactorKeys =
+                mavenSession.getAllProjects().stream().map(this::key).collect(Collectors.toSet());
+        return r -> reactorKeys.contains(r.key());
+    }
+
+    private void rewriteDockerFile(RangeResolver updated, File dockerFile) throws IOException {
+        List<String> dockerLines = List.ofAll(Files.readAllLines(dockerFile.toPath()));
+
+        var resolvedDockerContents = rewriteDockerLines(updated, dockerLines) + "\n";
+
+        File newDockerFile = new File(dockerFile.getAbsolutePath());
+        File originalFile = new File(dockerFile.getAbsolutePath() + ".orig");
+        if (originalFile.exists()) {
+            originalFile.delete();
+        }
+        dockerFile.renameTo(originalFile);
+
+        Files.write(newDockerFile.toPath(), resolvedDockerContents.getBytes(UTF_8));
+    }
+
+    static String rewriteDockerLines(RangeResolver updated, List<String> dockerLines) {
+
+        var allResolved = dev.zazr.collection.HashSet.<Resolved>empty()
+                .addAll(updated.resolved())
+                .addAll(updated.locked())
+                .addAll(updated.deprecated())
+                .filter(r -> r.artifactType() == DOCKER);
+
+        var versions = allResolved.foldLeft(
+                dev.zazr.collection.HashMap.<String, String>empty(),
+                (map, resolved) -> map.put(resolved.key(), resolved.version()));
+
+        return dockerLines
+                .map(line -> {
+                    var matcher = FROM_LINE.matcher(line);
+                    if (matcher.matches()) {
+                        if (versions.get(matcher.group(1)) instanceof Some(final var version)) {
+                            return matcher.replaceAll("FROM $1@%s$4".formatted(version));
+                        }
+                    }
+                    return line;
+                })
+                .mkString("\n");
+    }
+
+    private void rewritePom(RangeResolver updated, File pomFile) {
+        try {
+            Set<String> reactorKeys = resolveReactorKeys();
+            Map<String, Resolved> resolvedItems = resolvedItemsFor(updated);
+
+            Document pomDocument = new SAXBuilder().build(pomFile);
+            Element projectElem = pomDocument.getRootElement();
+
+            rewritePomBuild(resolvedItems, reactorKeys, projectElem);
+            rewritePomDependencies(resolvedItems, reactorKeys, projectElem);
+            rewritePomProperties(resolvedItems, reactorKeys, projectElem);
+
+            // Remove the pom.deps.sha1 property
+            Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
+            if (properties != null) {
+                Element sha1Element = properties.getChild(DEPENDENCIES_SHA1, NAMESPACE);
+                if (sha1Element != null) {
+                    sha1Element.detach();
                 }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  private void rewriteDependencyManagement(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
-    Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
-    if (dependencyManagement != null) {
-      rewritePomDependencies(resolvedItems, reactorKeys, dependencyManagement);
-    }
-  }
-
-  private void rewritePomProperties(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
-    Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
-    if (properties != null) {
-      for (Element property : properties.getChildren()) {
-        String depKey = keyFor(resolvedItems, property);
-        if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
-          Resolved resolved = resolvedItems.get(depKey);
-          property.setText(String.format("%s", resolved.version()));
-        }
-      }
-    }
-  }
-
-  private void rewriteAnnotationPaths(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
-    Element configuration = projectElem.getChild(CONFIGURATION, NAMESPACE);
-    if (configuration != null) {
-      Element annotationProcessorPaths = configuration.getChild(ANNOTATION_PROCESSOR_PATHS, NAMESPACE);
-      if (annotationProcessorPaths != null) {
-        for (Element path : annotationProcessorPaths.getChildren("path", NAMESPACE)) {
-          String depKey = keyFor(path);
-          if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
-            Resolved resolved = resolvedItems.get(depKey);
-
-            // Replace version
-            Element version = path.getChild(VERSION, NAMESPACE);
-            version.setText(resolved.version());
-          }
-        }
-      }
-    }
-  }
-
-  private void rewritePomDependencies(
-      Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
-    Predicate<String> pred = testExlusionsPredicate();
-    Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
-    if (dependencies != null) {
-      for (Element dependency : dependencies.getChildren()) {
-        String depKey = keyFor(dependency);
-        if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
-          Resolved resolved = resolvedItems.get(depKey);
-
-          // Replace version
-          Element version = dependency.getChild(VERSION, NAMESPACE);
-          if (version != null) {
-            if (isRelaxedScope(dependency) || isRelaxedGav(resolved)) {
-              version.setText(String.format("%s", resolved.version()));
-            } else {
-              version.setText(String.format("[%s]", resolved.version()));
             }
 
-            if (isProductionScope(dependency)) {
-              boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
-              if (!hasExistingExclusions) {
-                Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
-                Element exclusion = new Element(EXCLUSION, NAMESPACE);
-                exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(WILDCARD));
-                exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(WILDCARD));
-                exclusions.addContent(exclusion);
-                dependency.addContent(exclusions);
-              }
-            } else {
-              boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
-              if (!hasExistingExclusions) {
-                if (pred.test(depKey)) {
-                  Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
-
-                  for (String exclusionSpec : this.testExclusions) {
-                    String[] parts = exclusionSpec.split(":");
-
-                    Element exclusion = new Element(EXCLUSION, NAMESPACE);
-                    exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(parts[0]));
-                    exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(parts[1]));
-                    exclusions.addContent(exclusion);
-                  }
-                  dependency.addContent(exclusions);
+            Element parent = projectElem.getChild(PARENT, NAMESPACE);
+            if (parent != null) {
+                Resolved resolved = resolvedItems.get(keyFor(parent));
+                Element version = parent.getChild(VERSION, NAMESPACE);
+                if (resolved != null && version != null) {
+                    version.setText(String.format("%s", resolved.version()));
                 }
-              }
             }
-          }
+
+            Element profiles = projectElem.getChild(PROFILES, NAMESPACE);
+            if (profiles != null) {
+                List<Element> profileList = List.ofAll(profiles.getChildren(PROFILE, NAMESPACE));
+                for (Element profile : profileList) {
+                    rewritePomBuild(resolvedItems, reactorKeys, profile);
+                    rewriteDependencyManagement(resolvedItems, reactorKeys, profile);
+                    rewritePomDependencies(resolvedItems, reactorKeys, profile);
+                    rewritePomProperties(resolvedItems, reactorKeys, profile);
+                }
+            }
+
+            rewriteDependencyManagement(resolvedItems, reactorKeys, projectElem);
+
+            File newPomFile = new File(pomFile.getAbsolutePath());
+            File originalPomFile = new File(pomFile.getAbsolutePath() + ".orig");
+            if (originalPomFile.exists()) {
+                originalPomFile.delete();
+            }
+            pomFile.renameTo(originalPomFile);
+
+            String relativePomFileName = newPomFile
+                    .getPath()
+                    .substring(project.getBasedir().getPath().length() + 1);
+            getLog().info("Rewriting dependencies in " + relativePomFileName);
+
+            Format format = getPomRewriteFormat();
+
+            new XMLOutputter(format).output(pomDocument, Files.newBufferedWriter(newPomFile.toPath(), UTF_8));
+
+        } catch (IOException | JDOMException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-      }
     }
-  }
 
-  private Predicate<String> testExlusionsPredicate() {
-    Predicate<String> pred = s -> false;
-    for (String exclusionSpec : this.testExclusions) {
-      String[] parts = exclusionSpec.split(":");
-      pred = pred.or(convertGlobToRegex(keyFor(parts[0], parts[1])).asPredicate());
+    private static Map<String, Resolved> resolvedItemsFor(RangeResolver updated) {
+        Map<String, Resolved> resolvedItems = new HashMap<>();
+        resolvedItems.putAll(updated.resolved().collect(Resolved.collectByKey));
+        resolvedItems.putAll(updated.locked().collect(Resolved.collectByKey));
+        resolvedItems.putAll(updated.deprecated().collect(Resolved.collectByKey));
+        resolvedItems.putAll(updated.blacklisted().collect(Resolved.collectByKey));
+        return resolvedItems;
     }
-    return pred;
-  }
 
-  private boolean isProductionScope(Element dependency) {
-    Element scope = dependency.getChild(SCOPE, NAMESPACE);
-    return scope == null || exclusionScopes.matcher(scope.getText()).matches();
-  }
-
-  private boolean isRelaxedGav(Resolved resolved) {
-    return resolved.key().matches(relaxedGavs);
-  }
-
-  private boolean isRelaxedScope(Element dependency) {
-    Element scopeElement = dependency.getChild(SCOPE, NAMESPACE);
-    String scope = scopeElement != null ? scopeElement.getText() : "compile";
-    return scope.matches(relaxedScopes);
-  }
-
-  private Set<String> resolveReactorKeys() {
-    // get keys for projects in the reactor so that we can skip re-resolving them
-    return mavenSession.getAllProjects().stream()
-        .map(project -> keyFor(project.getGroupId(), project.getArtifactId()))
-        .collect(Collectors.toSet());
-  }
-
-  private String keyFor(Element dependency) {
-    return keyFor(dependency.getChildText(GROUP_ID, NAMESPACE), dependency.getChildText(ARTIFACT_ID, NAMESPACE));
-  }
-
-  private String keyFor(String groupId, String artifactId) {
-    return String.format(KEY_FORMAT, groupId, artifactId);
-  }
-
-  private String keyFor(Map<String, Resolved> resolvedItems, Element property) {
-    String name = property.getName();
-    for (Resolved resolved : resolvedItems.values()) {
-      if (name.equals(resolved.propertyName())) {
-        return resolved.key();
-      }
+    private Format getPomRewriteFormat() {
+        if (prettyPrintPomFormat) {
+            return Format.getPrettyFormat()
+                    .setLineSeparator(LineSeparator.SYSTEM)
+                    .setExpandEmptyElements(false);
+        } else {
+            return Format.getRawFormat().setLineSeparator(LineSeparator.SYSTEM);
+        }
     }
-    return "";
-  }
+
+    private void rewritePomBuild(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+        Element build = projectElem.getChild(BUILD, NAMESPACE);
+        if (build != null) {
+            rewritePomPlugins(resolvedItems, reactorKeys, build);
+            rewriteTiles(resolvedItems, build);
+            Element pluginManagement = build.getChild(PLUGIN_MANAGEMENT, NAMESPACE);
+            if (pluginManagement != null) {
+                rewritePomPlugins(resolvedItems, reactorKeys, pluginManagement);
+            }
+        }
+    }
+
+    private void rewritePomPlugins(Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element build) {
+        Element plugins = build.getChild(PLUGINS, NAMESPACE);
+        if (plugins != null) {
+            for (Element plugin : plugins.getChildren()) {
+                String pluginKey = keyFor(plugin);
+                if (!reactorKeys.contains(pluginKey) && resolvedItems.containsKey(pluginKey)) {
+                    Resolved resolved = resolvedItems.get(pluginKey);
+
+                    // Replace version
+                    Element version = plugin.getChild(VERSION, NAMESPACE);
+                    if (version != null) {
+                        version.setText(String.format("%s", resolved.version()));
+                    }
+
+                    // Replace maven-compiler-plugin annotation paths
+                    if ("org.apache.maven.plugins:maven-compiler-plugin".equals(pluginKey)) {
+                        rewriteAnnotationPaths(resolvedItems, reactorKeys, plugin);
+                    }
+                    // Replace plugin dependencies
+                    rewritePomDependencies(resolvedItems, reactorKeys, plugin);
+                }
+            }
+        }
+    }
+
+    private void rewriteTiles(Map<String, Resolved> resolvedItems, Element build) {
+        Element plugins = build.getChild(PLUGINS, NAMESPACE);
+        if (plugins != null) {
+            for (Element plugin : plugins.getChildren()) {
+                String pluginKey = keyFor(plugin);
+                if ("io.repaint.maven:tiles-maven-plugin".equals(pluginKey)) {
+                    Element configuration = plugin.getChild(CONFIGURATION, NAMESPACE);
+                    if (configuration != null) {
+                        Element tiles = configuration.getChild("tiles", NAMESPACE);
+                        if (tiles != null) {
+                            for (Element tile : tiles.getChildren("tile", NAMESPACE)) {
+                                String gav = tile.getText();
+                                String tileKey = gav.substring(0, gav.lastIndexOf(":"));
+                                Resolved resolved = resolvedItems.get(tileKey);
+                                if (resolved != null) {
+                                    tile.setText(String.format("%s:[%s]", tileKey, resolved.version()));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void rewriteDependencyManagement(
+            Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+        Element dependencyManagement = projectElem.getChild(DEPENDENCY_MANAGEMENT, NAMESPACE);
+        if (dependencyManagement != null) {
+            rewritePomDependencies(resolvedItems, reactorKeys, dependencyManagement);
+        }
+    }
+
+    private void rewritePomProperties(
+            Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+        Element properties = projectElem.getChild(PROPERTIES, NAMESPACE);
+        if (properties != null) {
+            for (Element property : properties.getChildren()) {
+                String depKey = keyFor(resolvedItems, property);
+                if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
+                    Resolved resolved = resolvedItems.get(depKey);
+                    property.setText(String.format("%s", resolved.version()));
+                }
+            }
+        }
+    }
+
+    private void rewriteAnnotationPaths(
+            Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+        Element configuration = projectElem.getChild(CONFIGURATION, NAMESPACE);
+        if (configuration != null) {
+            Element annotationProcessorPaths = configuration.getChild(ANNOTATION_PROCESSOR_PATHS, NAMESPACE);
+            if (annotationProcessorPaths != null) {
+                for (Element path : annotationProcessorPaths.getChildren("path", NAMESPACE)) {
+                    String depKey = keyFor(path);
+                    if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
+                        Resolved resolved = resolvedItems.get(depKey);
+
+                        // Replace version
+                        Element version = path.getChild(VERSION, NAMESPACE);
+                        version.setText(resolved.version());
+                    }
+                }
+            }
+        }
+    }
+
+    private void rewritePomDependencies(
+            Map<String, Resolved> resolvedItems, Set<String> reactorKeys, Element projectElem) {
+        Predicate<String> pred = testExlusionsPredicate();
+        Element dependencies = projectElem.getChild(DEPENDENCIES, NAMESPACE);
+        if (dependencies != null) {
+            for (Element dependency : dependencies.getChildren()) {
+                String depKey = keyFor(dependency);
+                if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
+                    Resolved resolved = resolvedItems.get(depKey);
+
+                    // Replace version
+                    Element version = dependency.getChild(VERSION, NAMESPACE);
+                    if (version != null) {
+                        if (isRelaxedScope(dependency) || isRelaxedGav(resolved)) {
+                            version.setText(String.format("%s", resolved.version()));
+                        } else {
+                            version.setText(String.format("[%s]", resolved.version()));
+                        }
+
+                        if (isProductionScope(dependency)) {
+                            boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
+                            if (!hasExistingExclusions) {
+                                Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
+                                Element exclusion = new Element(EXCLUSION, NAMESPACE);
+                                exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(WILDCARD));
+                                exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(WILDCARD));
+                                exclusions.addContent(exclusion);
+                                dependency.addContent(exclusions);
+                            }
+                        } else {
+                            boolean hasExistingExclusions = dependency.getChild(EXCLUSIONS, NAMESPACE) != null;
+                            if (!hasExistingExclusions) {
+                                if (pred.test(depKey)) {
+                                    Element exclusions = new Element(EXCLUSIONS, NAMESPACE);
+
+                                    for (String exclusionSpec : this.testExclusions) {
+                                        String[] parts = exclusionSpec.split(":");
+
+                                        Element exclusion = new Element(EXCLUSION, NAMESPACE);
+                                        exclusion.addContent(new Element(GROUP_ID, NAMESPACE).setText(parts[0]));
+                                        exclusion.addContent(new Element(ARTIFACT_ID, NAMESPACE).setText(parts[1]));
+                                        exclusions.addContent(exclusion);
+                                    }
+                                    dependency.addContent(exclusions);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private Predicate<String> testExlusionsPredicate() {
+        Predicate<String> pred = s -> false;
+        for (String exclusionSpec : this.testExclusions) {
+            String[] parts = exclusionSpec.split(":");
+            pred = pred.or(convertGlobToRegex(keyFor(parts[0], parts[1])).asPredicate());
+        }
+        return pred;
+    }
+
+    private boolean isProductionScope(Element dependency) {
+        Element scope = dependency.getChild(SCOPE, NAMESPACE);
+        return scope == null || exclusionScopes.matcher(scope.getText()).matches();
+    }
+
+    private boolean isRelaxedGav(Resolved resolved) {
+        return resolved.key().matches(relaxedGavs);
+    }
+
+    private boolean isRelaxedScope(Element dependency) {
+        Element scopeElement = dependency.getChild(SCOPE, NAMESPACE);
+        String scope = scopeElement != null ? scopeElement.getText() : "compile";
+        return scope.matches(relaxedScopes);
+    }
+
+    private Set<String> resolveReactorKeys() {
+        // get keys for projects in the reactor so that we can skip re-resolving them
+        return mavenSession.getAllProjects().stream()
+                .map(project -> keyFor(project.getGroupId(), project.getArtifactId()))
+                .collect(Collectors.toSet());
+    }
+
+    private String keyFor(Element dependency) {
+        return keyFor(dependency.getChildText(GROUP_ID, NAMESPACE), dependency.getChildText(ARTIFACT_ID, NAMESPACE));
+    }
+
+    private String keyFor(String groupId, String artifactId) {
+        return String.format(KEY_FORMAT, groupId, artifactId);
+    }
+
+    private String keyFor(Map<String, Resolved> resolvedItems, Element property) {
+        String name = property.getName();
+        for (Resolved resolved : resolvedItems.values()) {
+            if (name.equals(resolved.propertyName())) {
+                return resolved.key();
+            }
+        }
+        return "";
+    }
 }

@@ -7,10 +7,10 @@ import static io.repaint.rangeresolver.mojo.VerifyDependenciesMojo.expandVersion
 import static org.assertj.core.api.Assertions.assertThat;
 
 class VerifyDependenciesMojoTest {
-  @Test
-  void testExpandVersionToUpperRange() throws Exception {
-    assertThat(expandVersionToUpperRange("1.3.2")).isEqualTo("[1.3.2,2.0.0)");
-    assertThat(expandVersionToUpperRange("[1.3.2]")).isEqualTo("[1.3.2]");
-    assertThat(expandVersionToUpperRange("(1.3.2]")).isEqualTo("(1.3.2]");
-  }
+    @Test
+    void testExpandVersionToUpperRange() throws Exception {
+        assertThat(expandVersionToUpperRange("1.3.2")).isEqualTo("[1.3.2,2.0.0)");
+        assertThat(expandVersionToUpperRange("[1.3.2]")).isEqualTo("[1.3.2]");
+        assertThat(expandVersionToUpperRange("(1.3.2]")).isEqualTo("(1.3.2]");
+    }
 }

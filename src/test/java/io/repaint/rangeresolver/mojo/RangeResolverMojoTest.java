@@ -26,169 +26,161 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class RangeResolverMojoTest {
 
-  Resolved resolved = Resolved.of(
-      "",
-      DOCKER,
-      "",
-      "eclipse-temurin",
-      "sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c",
-      none(),
-      "",
-      Range.fixed("24"),
-      RESOLVED);
+    Resolved resolved = Resolved.of(
+            "",
+            DOCKER,
+            "",
+            "eclipse-temurin",
+            "sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c",
+            none(),
+            "",
+            Range.fixed("24"),
+            RESOLVED);
 
-  RangeResolver resolver = RangeResolver.of(
-      HashMultimap.create(),
-      List.empty(),
-      HashSet.empty(),
-      HashSet.empty(),
-      List.empty(),
-      List.empty(),
-      List.of(resolved),
-      List.empty(),
-      List.empty(),
-      List.empty());
+    RangeResolver resolver = RangeResolver.of(
+            HashMultimap.create(),
+            List.empty(),
+            HashSet.empty(),
+            HashSet.empty(),
+            List.empty(),
+            List.empty(),
+            List.of(resolved),
+            List.empty(),
+            List.empty(),
+            List.empty());
 
-  @Test
-  public void rewriteDockerLines() {
+    @Test
+    public void rewriteDockerLines() {
 
-    // spotless:off
+        // spotless:off
     var dockerLines = """
-      FROM eclipse-temurin:24 AS builder
-      """.trim().lines().collect(List.collector());
+        FROM eclipse-temurin:24 AS builder
+        """.trim().lines().collect(List.collector());
     // spotless:on
 
-    var newLines = RangeResolverMojo.rewriteDockerLines(resolver, dockerLines);
+        var newLines = RangeResolverMojo.rewriteDockerLines(resolver, dockerLines);
 
-    // spotless:off
+        // spotless:off
     var expected = """
-      FROM eclipse-temurin@sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c AS builder
-      """.trim();
+        FROM eclipse-temurin@sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c AS builder
+        """.trim();
     // spotless:on
 
-    assertThat(newLines).isEqualTo(expected);
-  }
+        assertThat(newLines).isEqualTo(expected);
+    }
 
-  @Test
-  public void rewriteDockerShaLines() {
+    @Test
+    public void rewriteDockerShaLines() {
 
-    // spotless:off
-    var dockerLines = """
-      FROM eclipse-temurin@sha256:83177670e43c17769a5402a60601545318e45e63adf634fb5022340e516cded4 AS builder
-      """.trim().lines().collect(List.collector());
-    // spotless:on
+        var dockerLines = """
+        FROM eclipse-temurin@sha256:83177670e43c17769a5402a60601545318e45e63adf634fb5022340e516cded4 AS builder
+        """.trim().lines().collect(List.collector());
 
-    var newLines = RangeResolverMojo.rewriteDockerLines(resolver, dockerLines);
+        var newLines = RangeResolverMojo.rewriteDockerLines(resolver, dockerLines);
 
-    // spotless:off
-    var expected = """
-      FROM eclipse-temurin@sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c AS builder
-      """.trim();
-    // spotless:on
+        var expected = """
+        FROM eclipse-temurin@sha256:12ded611adf81135d72a57ab0c1837178e17fb6ccdecb88f5e3b85e5c45c078c AS builder
+        """.trim();
 
-    assertThat(newLines).isEqualTo(expected);
-  }
+        assertThat(newLines).isEqualTo(expected);
+    }
 
-  @Test
-  public void referencedKeysIncludesTileXmlBuildAndProfilePlugins() throws Exception {
+    @Test
+    public void referencedKeysIncludesTileXmlBuildAndProfilePlugins() throws Exception {
 
-    // spotless:off
-    var tileXml = """
-      <project xmlns="http://maven.apache.org/POM/4.0.0">
-        <properties>
-          <failBuildOnCVSS>5</failBuildOnCVSS>
-        </properties>
-        <build>
-          <plugins>
-            <plugin>
-              <groupId>org.cyclonedx</groupId>
-              <artifactId>cyclonedx-maven-plugin</artifactId>
-              <version>2.9.1</version>
-            </plugin>
-            <plugin>
-              <groupId>io.repaint.maven</groupId>
-              <artifactId>tiles-maven-plugin</artifactId>
-              <configuration>
-                <tiles>
-                  <tile>com.smxemail.tiles:com.smxemail.tiles.release:[2.2.130]</tile>
-                </tiles>
-              </configuration>
-            </plugin>
-          </plugins>
-        </build>
-        <profiles>
-          <profile>
-            <id>security</id>
-            <build>
-              <plugins>
-                <plugin>
-                  <groupId>org.owasp</groupId>
-                  <artifactId>dependency-check-maven</artifactId>
-                  <version>12.1.0</version>
-                </plugin>
-              </plugins>
-            </build>
-          </profile>
-        </profiles>
-      </project>
+        var tileXml = """
+        <project xmlns="http://maven.apache.org/POM/4.0.0">
+          <properties>
+            <failBuildOnCVSS>5</failBuildOnCVSS>
+          </properties>
+          <build>
+            <plugins>
+              <plugin>
+                <groupId>org.cyclonedx</groupId>
+                <artifactId>cyclonedx-maven-plugin</artifactId>
+                <version>2.9.1</version>
+              </plugin>
+              <plugin>
+                <groupId>io.repaint.maven</groupId>
+                <artifactId>tiles-maven-plugin</artifactId>
+                <configuration>
+                  <tiles>
+                    <tile>io.repaint:io.repaint.tiles.enforcement:[1.0.3]</tile>
+                  </tiles>
+                </configuration>
+              </plugin>
+            </plugins>
+          </build>
+          <profiles>
+            <profile>
+              <id>security</id>
+              <build>
+                <plugins>
+                  <plugin>
+                    <groupId>org.owasp</groupId>
+                    <artifactId>dependency-check-maven</artifactId>
+                    <version>12.1.0</version>
+                  </plugin>
+                </plugins>
+              </build>
+            </profile>
+          </profiles>
+        </project>
+        """;
+
+        var root = new SAXBuilder().build(new StringReader(tileXml)).getRootElement();
+
+        assertThat(RangeResolverMojo.referencedKeys(root))
+                .contains(
+                        "org.cyclonedx:cyclonedx-maven-plugin",
+                        "org.owasp:dependency-check-maven",
+                        "io.repaint.maven:tiles-maven-plugin",
+                        "com.smxemail.tiles:com.smxemail.tiles.release");
+        assertThat(RangeResolverMojo.propertyNames(root)).contains("failBuildOnCVSS");
+    }
+
+    static final String EXTENSIONS_XML = """
+      <extensions>
+        <extension>
+          <groupId>eu.maveniverse.maven.nisse</groupId>
+          <artifactId>extension</artifactId>
+          <version>0.9.11</version>
+        </extension>
+      </extensions>
       """;
-    // spotless:on
 
-    var root = new SAXBuilder().build(new StringReader(tileXml)).getRootElement();
+    @Test
+    public void extensionKeysFromExtensionsXml() throws Exception {
+        var root = new SAXBuilder().build(new StringReader(EXTENSIONS_XML)).getRootElement();
 
-    assertThat(RangeResolverMojo.referencedKeys(root))
-        .contains(
-            "org.cyclonedx:cyclonedx-maven-plugin",
-            "org.owasp:dependency-check-maven",
-            "io.repaint.maven:tiles-maven-plugin",
-            "com.smxemail.tiles:com.smxemail.tiles.release");
-    assertThat(RangeResolverMojo.propertyNames(root)).contains("failBuildOnCVSS");
-  }
+        assertThat(RangeResolverMojo.extensionKeys(root)).containsExactly("eu.maveniverse.maven.nisse:extension");
+    }
 
-  // spotless:off
-  static final String EXTENSIONS_XML = """
-    <extensions>
-      <extension>
-        <groupId>eu.maveniverse.maven.nisse</groupId>
-        <artifactId>extension</artifactId>
-        <version>0.9.11</version>
-      </extension>
-    </extensions>
-    """;
-  // spotless:on
+    @Test
+    public void rewriteExtensionsUpdatesVersion() throws Exception {
+        var root = new SAXBuilder()
+                .build(new StringReader(EXTENSIONS_XML.replace(
+                        "<extensions>", "<extensions xmlns=\"http://maven.apache.org/EXTENSIONS/1.2.0\">")))
+                .getRootElement();
 
-  @Test
-  public void extensionKeysFromExtensionsXml() throws Exception {
-    var root = new SAXBuilder().build(new StringReader(EXTENSIONS_XML)).getRootElement();
+        var nisse = Resolved.of(
+                "",
+                MAVEN,
+                "eu.maveniverse.maven.nisse",
+                "extension",
+                "0.9.12",
+                none(),
+                "",
+                Range.fixed("0.9.12"),
+                RESOLVED);
 
-    assertThat(RangeResolverMojo.extensionKeys(root)).containsExactly("eu.maveniverse.maven.nisse:extension");
-  }
+        var changed = RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root);
 
-  @Test
-  public void rewriteExtensionsUpdatesVersion() throws Exception {
-    var root = new SAXBuilder()
-        .build(new StringReader(EXTENSIONS_XML.replace(
-            "<extensions>", "<extensions xmlns=\"http://maven.apache.org/EXTENSIONS/1.2.0\">")))
-        .getRootElement();
+        assertThat(changed).isTrue();
+        assertThat(root.getChild("extension", root.getNamespace()).getChildText("version", root.getNamespace()))
+                .isEqualTo("0.9.12");
 
-    var nisse = Resolved.of(
-        "",
-        MAVEN,
-        "eu.maveniverse.maven.nisse",
-        "extension",
-        "0.9.12",
-        none(),
-        "",
-        Range.fixed("0.9.12"),
-        RESOLVED);
-
-    var changed = RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root);
-
-    assertThat(changed).isTrue();
-    assertThat(root.getChild("extension", root.getNamespace()).getChildText("version", root.getNamespace()))
-        .isEqualTo("0.9.12");
-
-    assertThat(RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root))
-        .isFalse();
-  }
+        assertThat(RangeResolverMojo.rewriteExtensions(Map.of(nisse.key(), nisse), Set.of(), root))
+                .isFalse();
+    }
 }
