@@ -4,19 +4,51 @@
 
   <groupId>io.repaint</groupId>
   <artifactId>rangeresolver-maven-plugin</artifactId>
-  <version>2.0.6-SNAPSHOT</version>
+  <version>${nisse.jgit.dynamicVersion}</version>
   <packaging>maven-plugin</packaging>
 
   <name>rangeresolver-maven-plugin Maven Mojo</name>
+  <description>Maven plugin for resolving and locking dependency version ranges</description>
   <url>http://maven.apache.org</url>
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>talios</id>
+      <email>mark@talios.com</email>
+      <name>Mark Derricutt</name>
+    </developer>
+  </developers>
 
   <prerequisites>
     <maven>3.10.0</maven>
   </prerequisites>
 
   <scm>
-    <tag>rangeresolver-maven-plugin-1.2.31</tag>
+    <connection>scm:git:git@github.com:repaint-io/rangeresolver-maven-plugin</connection>
+    <developerConnection>scm:git:git@github.com:repaint-io/rangeresolver-maven-plugin</developerConnection>
+    <url>https://github.com/repaint-io/rangeresolver-maven-plugin</url>
+    <tag>HEAD</tag>
   </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-central-portal</id>
+      <name>Sonatype Snapshots</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-central-portal</id>
+      <name>Sonatype Releases</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+  </distributionManagement>
 
   <properties>
     <checkstyle.suppressions.location>checkstyle-supressions.xml</checkstyle.suppressions.location>
@@ -27,6 +59,7 @@
     <relaxedScopes>.*</relaxedScopes>
     <release>26</release>
     <version.maven>3.10.0</version.maven>
+    <version.njord>0.9.10</version.njord>
   </properties>
 
   <dependencies>
@@ -44,7 +77,7 @@
     <dependency>
       <groupId>io.repaint</groupId>
       <artifactId>io.repaint.rangeresolver</artifactId>
-      <version>1.1.57-SNAPSHOT</version>
+      <version>1.0.1</version>
       <exclusions />
     </dependency>
     <dependency>
@@ -231,7 +264,55 @@
   </dependencies>
 
   <build>
+    <extensions>
+      <extension>
+        <groupId>eu.maveniverse.maven.njord</groupId>
+        <artifactId>extension3</artifactId>
+        <version>${version.njord}</version>
+      </extension>
+    </extensions>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>eu.maveniverse.maven.plugins</groupId>
+          <artifactId>njord</artifactId>
+          <version>${version.njord}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.8</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.4.0</version>
+        <configuration>
+          <!-- The enforcement tile sets skipSource; release needs the -sources jar. -->
+          <skipSource>false</skipSource>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>io.repaint.maven</groupId>
         <artifactId>tiles-maven-plugin</artifactId>

@@ -13,22 +13,19 @@ resolve highest org.apache.maven.plugins:maven-model-builder:[3.5.0,4.0.0) via c
 resolve highest org.apache.maven.shared:maven-filtering:[3.5.1,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.scm:maven-scm-manager-plexus:[1.13.0,2.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.scm:maven-scm-api:[1.13.0,2.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
-resolve highest com.google.truth:truth:[1.4.5,2.0) via central;
 resolve highest dev.zazr:zazr-core:[0.5.0,1.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 
 alias org.immutables:value as immutables.value.version;
 alias com.github.spullara.mustache.java:compiler as mustache.compiler.version;
-
-resolved com.google.truth:truth:1.4.5;
-resolved org.apache.maven.plugins:maven-dependency-plugin:3.11.0;
 
 locked com.diffplug.spotless:spotless-maven-plugin:3.11.0;
 locked com.google.guava:failureaccess:1.0.3;
 locked com.palantir.javaformat:palantir-java-format:2.103.0;
 locked dev.zazr:zazr-core:0.5.0;
 locked io.repaint.maven:tiles-maven-plugin:2.47.0;
-locked io.repaint:io.repaint.rangeresolver:1.1.57-SNAPSHOT;
+locked io.repaint:io.repaint.rangeresolver:1.0.1;
 locked org.antlr:antlr4-runtime:4.13.2;
+locked org.apache.maven.plugins:maven-dependency-plugin:3.11.0;
 locked org.apache.maven.plugins:maven-deploy-plugin:3.2.0;
 locked org.apache.maven.plugins:maven-failsafe-plugin:3.6.1;
 locked org.apache.maven.plugins:maven-install-plugin:3.2.0;
