@@ -92,8 +92,7 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
         try {
             return res.withRange(res.range().withLower(version));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                    String.format("Unable to resolve: %s - %s", res.key(), e.getMessage()), e);
+            throw new IllegalArgumentException("Unable to resolve: %s - %s".formatted(res.key(), e.getMessage()), e);
         }
     }
 }

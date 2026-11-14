@@ -1,7 +1,5 @@
 package io.repaint.rangeresolver.mojo;
 
-import com.google.common.base.MoreObjects;
-
 import dev.zazr.collection.List;
 
 import io.repaint.rangeresolver.api.Resolved;
@@ -29,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -86,7 +85,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     public static File resolveDepsFile(MavenSession mavenSession) {
         File pomFile = sourcePomFile(mavenSession);
         String pomBaseName = pomFile.getName().substring(0, pomFile.getName().lastIndexOf(".") + 1);
-        return new File(pomFile.getParentFile(), pomBaseName + "deps");
+        return pomFile.toPath().resolveSibling(pomBaseName + "deps").toFile();
     }
 
     /**
@@ -97,11 +96,16 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
         File requestedPom = mavenSession.getRequest().getPom();
         return requestedPom != null
                 ? requestedPom.getAbsoluteFile()
-                : new File(mavenSession.getTopLevelProject().getBasedir(), "pom.xml");
+                : mavenSession
+                        .getTopLevelProject()
+                        .getBasedir()
+                        .toPath()
+                        .resolve("pom.xml")
+                        .toFile();
     }
 
     protected void commitChangesToDependencies(String message, File file) throws MojoExecutionException {
-        commitChangesToDependencies(message, file.getParentFile(), Collections.singleton(file));
+        commitChangesToDependencies(message, file.getParentFile(), Set.of(file));
     }
 
     protected void commitChangesToDependencies(String message, File baseDir, Set<File> files)
@@ -110,7 +114,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
             getLog().info("Project is not being released, or commits are disabled, skipping commit: " + message);
         } else {
             try {
-                String connectionUrl = MoreObjects.firstNonNull(
+                String connectionUrl = Objects.requireNonNullElse(
                         project.getScm().getConnection(), project.getScm().getDeveloperConnection());
                 ScmRepository repository = scmManager.makeScmRepository(connectionUrl);
                 ScmProviderRepository providerRepo = repository.getProviderRepository();
@@ -120,16 +124,16 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
                 StatusScmResult statusScmResult = scmManager.status(repository, scmFileSet);
 
                 if (containsDepChange(statusScmResult, files)) {
-                    getLog().info(String.format("Committing dependency changes to %s", connectionUrl));
+                    getLog().info("Committing dependency changes to %s".formatted(connectionUrl));
                     AddScmResult addResult = scmManager.add(repository, scmFileSet);
                     if (!addResult.isSuccess()) {
                         throw new MojoExecutionException(
-                                String.format("Unable to add dependency changes to repository %s", connectionUrl));
+                                "Unable to add dependency changes to repository %s".formatted(connectionUrl));
                     } else {
                         CheckInScmResult checkinResult = scmManager.checkIn(repository, scmFileSet, message);
                         if (!checkinResult.isSuccess()) {
-                            throw new MojoExecutionException(String.format(
-                                    "Unable to commit dependency changes to repository %s", connectionUrl));
+                            throw new MojoExecutionException(
+                                    "Unable to commit dependency changes to repository %s".formatted(connectionUrl));
                         }
                     }
                 } else {
@@ -146,23 +150,27 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     }
 
     private boolean projectIsReleasing() {
-        return new File(project.getBasedir(), "release.properties").exists();
+        return project.getBasedir()
+                .toPath()
+                .resolve("release.properties")
+                .toFile()
+                .exists();
     }
 
     protected void throwBlacklistedException(List<Resolved> blacklistedExcludingReactorProjects)
             throws MojoExecutionException {
-        throw new MojoExecutionException(String.format(
-                "Blacklisted dependencies found: %s - add <allowBlacklistedDependencies>true</allowBlacklistedDependencies> to your pom.xml's "
-                        + "properties to bypass.",
-                blacklistedExcludingReactorProjects.mkString(", ")));
+        throw new MojoExecutionException(
+                ("Blacklisted dependencies found: %s - add <allowBlacklistedDependencies>true</allowBlacklistedDependencies> to your pom.xml's "
+                                + "properties to bypass.")
+                        .formatted(blacklistedExcludingReactorProjects.mkString(", ")));
     }
 
     protected void throwDeprecationException(List<Resolved> deprecatedExcludingReactorProjects)
             throws MojoExecutionException {
-        throw new MojoExecutionException(String.format(
-                "Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
-                        + "properties to bypass.",
-                deprecatedExcludingReactorProjects.mkString(", ")));
+        throw new MojoExecutionException(
+                ("Disallowed deprecated dependencies found: %s - add <allowDeprecatedDependencies>true</allowDeprecatedDependencies> to your pom.xml's "
+                                + "properties to bypass.")
+                        .formatted(deprecatedExcludingReactorProjects.mkString(", ")));
     }
 
     private boolean containsDepChange(StatusScmResult statusScmResult, Set<File> files) {
@@ -174,20 +182,18 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     }
 
     protected String gav(Dependency undeclaredDependency) {
-        return String.format(
-                GAV_FORMAT,
+        return GAV_FORMAT.formatted(
                 undeclaredDependency.getGroupId(),
                 undeclaredDependency.getArtifactId(),
                 undeclaredDependency.getVersion());
     }
 
     protected String gav(MavenProject mavenProject) {
-        return String.format(
-                GAV_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion());
+        return GAV_FORMAT.formatted(mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion());
     }
 
     protected String key(MavenProject mavenProject) {
-        return String.format(KEY_FORMAT, mavenProject.getGroupId(), mavenProject.getArtifactId());
+        return KEY_FORMAT.formatted(mavenProject.getGroupId(), mavenProject.getArtifactId());
     }
 
     protected String getSourceReference(MavenSession session) {
@@ -199,7 +205,7 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
             String groupId = doc.getElementsByTagName("groupId").item(0).getTextContent();
             String artifactId = doc.getElementsByTagName("artifactId").item(0).getTextContent();
             String version = doc.getElementsByTagName("version").item(0).getTextContent();
-            return String.format(GAV_FORMAT, groupId, artifactId, version);
+            return GAV_FORMAT.formatted(groupId, artifactId, version);
         } catch (SAXException | ParserConfigurationException | IOException e) {
             return "";
         }

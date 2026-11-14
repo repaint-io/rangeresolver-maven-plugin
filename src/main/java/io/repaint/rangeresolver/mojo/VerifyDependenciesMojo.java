@@ -70,13 +70,13 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     private void processVerification(File deps, MavenProject mavenProject, Set<Dependency> undeclared)
             throws MojoExecutionException {
         if (!undeclared.isEmpty()) {
-            getLog().error(String.format("Undeclared dependencies found in %s", gav(mavenProject)));
+            getLog().error("Undeclared dependencies found in %s".formatted(gav(mavenProject)));
             for (Dependency dependency : undeclared) {
-                getLog().error(String.format("Undeclared dependency: %s", gav(dependency)));
+                getLog().error("Undeclared dependency: %s".formatted(gav(dependency)));
             }
 
-            getLog().warn(String.format(
-                    "Add the following script to the file %s:\n\n%s\n", deps.getPath(), generateSource(undeclared)));
+            getLog().warn("Add the following script to the file %s:\n\n%s\n"
+                    .formatted(deps.getPath(), generateSource(undeclared)));
 
             if (strictDependency) {
                 throw new MojoExecutionException("Undeclared dependencies in " + deps.getPath());
@@ -99,15 +99,14 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
     }
 
     private String keyForDependency(Dependency dependency) {
-        return String.format("%s:%s", dependency.getGroupId(), dependency.getArtifactId());
+        return "%s:%s".formatted(dependency.getGroupId(), dependency.getArtifactId());
     }
 
     private String generateSource(Set<Dependency> dependencies) {
         StringBuilder sb = new StringBuilder();
         for (Dependency dependency : dependencies) {
-            sb.append(String.format(
-                    "     resolve highest %s:%s;\n",
-                    keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
+            sb.append("     resolve highest %s:%s;\n"
+                    .formatted(keyForDependency(dependency), expandVersionToUpperRange(dependency.getVersion())));
         }
         return sb.toString();
     }
@@ -118,7 +117,7 @@ public class VerifyDependenciesMojo extends AbstractRangeResolverMojo {
         } else {
             ArtifactVersion artifactVersion = new DefaultArtifactVersion(version);
             String nextMajorVersionNumber = artifactVersion.getMajorVersion() + 1 + ".0.0";
-            return String.format("[%s,%s)", version, nextMajorVersionNumber);
+            return "[%s,%s)".formatted(version, nextMajorVersionNumber);
         }
     }
 }

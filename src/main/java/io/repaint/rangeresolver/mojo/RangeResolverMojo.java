@@ -245,7 +245,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
 
     private Set<File> rewriteExtensionsFile(RangeResolver resolver, File baseDir) throws IOException {
-        File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+        File extensionsFile = baseDir.toPath().resolve(EXTENSIONS_XML).toFile();
         if (!extensionsFile.isFile()) {
             return new HashSet<>();
         }
@@ -256,7 +256,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 return new HashSet<>();
             }
 
-            File originalFile = new File(extensionsFile.getAbsolutePath() + ".orig");
+            File originalFile =
+                    Path.of(extensionsFile.getAbsolutePath() + ".orig").toFile();
             if (originalFile.exists()) {
                 originalFile.delete();
             }
@@ -282,8 +283,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
         Namespace ns = root.getNamespace();
         boolean changed = false;
         for (Element extension : root.getChildren(EXTENSION, ns)) {
-            String key = String.format(
-                    KEY_FORMAT, extension.getChildTextTrim(GROUP_ID, ns), extension.getChildTextTrim(ARTIFACT_ID, ns));
+            String key = KEY_FORMAT.formatted(
+                    extension.getChildTextTrim(GROUP_ID, ns), extension.getChildTextTrim(ARTIFACT_ID, ns));
             Element version = extension.getChild(VERSION, ns);
             Resolved resolved = resolvedItems.get(key);
             if (version != null
@@ -304,7 +305,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             String groupId = extension.getChildTextTrim(GROUP_ID, ns);
             String artifactId = extension.getChildTextTrim(ARTIFACT_ID, ns);
             if (groupId != null && artifactId != null) {
-                keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+                keys.add(KEY_FORMAT.formatted(groupId, artifactId));
             }
         }
         return keys;
@@ -315,7 +316,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
      * model.
      */
     private Predicate<Resolved> buildExtensionsReferencesPredicate(File baseDir) throws IOException {
-        File extensionsFile = new File(baseDir, EXTENSIONS_XML);
+        File extensionsFile = baseDir.toPath().resolve(EXTENSIONS_XML).toFile();
         if (!extensionsFile.isFile()) {
             return r -> false;
         }
@@ -405,12 +406,12 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
             String groupId = element.getChildTextTrim(GROUP_ID, NAMESPACE);
             String artifactId = element.getChildTextTrim(ARTIFACT_ID, NAMESPACE);
             if (groupId != null && artifactId != null) {
-                keys.add(String.format(KEY_FORMAT, groupId, artifactId));
+                keys.add(KEY_FORMAT.formatted(groupId, artifactId));
             }
             if ("tile".equals(element.getName())) {
                 String[] parts = element.getTextTrim().split(":");
                 if (parts.length >= 2) {
-                    keys.add(String.format(KEY_FORMAT, parts[0], parts[1]));
+                    keys.add(KEY_FORMAT.formatted(parts[0], parts[1]));
                 }
             }
         }
@@ -469,8 +470,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
         var resolvedDockerContents = rewriteDockerLines(updated, dockerLines) + "\n";
 
-        File newDockerFile = new File(dockerFile.getAbsolutePath());
-        File originalFile = new File(dockerFile.getAbsolutePath() + ".orig");
+        File newDockerFile = dockerFile.getAbsoluteFile();
+        File originalFile = Path.of(dockerFile.getAbsolutePath() + ".orig").toFile();
         if (originalFile.exists()) {
             originalFile.delete();
         }
@@ -530,7 +531,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 Resolved resolved = resolvedItems.get(keyFor(parent));
                 Element version = parent.getChild(VERSION, NAMESPACE);
                 if (resolved != null && version != null) {
-                    version.setText(String.format("%s", resolved.version()));
+                    version.setText(resolved.version());
                 }
             }
 
@@ -547,8 +548,8 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
             rewriteDependencyManagement(resolvedItems, reactorKeys, projectElem);
 
-            File newPomFile = new File(pomFile.getAbsolutePath());
-            File originalPomFile = new File(pomFile.getAbsolutePath() + ".orig");
+            File newPomFile = pomFile.getAbsoluteFile();
+            File originalPomFile = Path.of(pomFile.getAbsolutePath() + ".orig").toFile();
             if (originalPomFile.exists()) {
                 originalPomFile.delete();
             }
@@ -610,7 +611,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                     // Replace version
                     Element version = plugin.getChild(VERSION, NAMESPACE);
                     if (version != null) {
-                        version.setText(String.format("%s", resolved.version()));
+                        version.setText(resolved.version());
                     }
 
                     // Replace maven-compiler-plugin annotation paths
@@ -639,7 +640,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                                 String tileKey = gav.substring(0, gav.lastIndexOf(":"));
                                 Resolved resolved = resolvedItems.get(tileKey);
                                 if (resolved != null) {
-                                    tile.setText(String.format("%s:[%s]", tileKey, resolved.version()));
+                                    tile.setText("%s:[%s]".formatted(tileKey, resolved.version()));
                                 }
                             }
                         }
@@ -665,7 +666,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                 String depKey = keyFor(resolvedItems, property);
                 if (!reactorKeys.contains(depKey) && resolvedItems.containsKey(depKey)) {
                     Resolved resolved = resolvedItems.get(depKey);
-                    property.setText(String.format("%s", resolved.version()));
+                    property.setText(resolved.version());
                 }
             }
         }
@@ -705,9 +706,9 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
                     Element version = dependency.getChild(VERSION, NAMESPACE);
                     if (version != null) {
                         if (isRelaxedScope(dependency) || isRelaxedGav(resolved)) {
-                            version.setText(String.format("%s", resolved.version()));
+                            version.setText(resolved.version());
                         } else {
-                            version.setText(String.format("[%s]", resolved.version()));
+                            version.setText("[%s]".formatted(resolved.version()));
                         }
 
                         if (isProductionScope(dependency)) {
@@ -780,7 +781,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
     }
 
     private String keyFor(String groupId, String artifactId) {
-        return String.format(KEY_FORMAT, groupId, artifactId);
+        return KEY_FORMAT.formatted(groupId, artifactId);
     }
 
     private String keyFor(Map<String, Resolved> resolvedItems, Element property) {

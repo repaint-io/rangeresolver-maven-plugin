@@ -12,7 +12,7 @@ import io.repaint.rangeresolver.api.Resolved;
 import org.jdom2.input.SAXBuilder;
 import org.junit.jupiter.api.Test;
 
-import java.io.StringReader;
+import java.io.Reader;
 import java.util.Map;
 import java.util.Set;
 
@@ -128,14 +128,14 @@ class RangeResolverMojoTest {
         </project>
         """;
 
-        var root = new SAXBuilder().build(new StringReader(tileXml)).getRootElement();
+        var root = new SAXBuilder().build(Reader.of(tileXml)).getRootElement();
 
         assertThat(RangeResolverMojo.referencedKeys(root))
                 .contains(
                         "org.cyclonedx:cyclonedx-maven-plugin",
                         "org.owasp:dependency-check-maven",
                         "io.repaint.maven:tiles-maven-plugin",
-                        "com.smxemail.tiles:com.smxemail.tiles.release");
+                        "io.repaint:io.repaint.tiles.enforcement");
         assertThat(RangeResolverMojo.propertyNames(root)).contains("failBuildOnCVSS");
     }
 
@@ -151,7 +151,7 @@ class RangeResolverMojoTest {
 
     @Test
     public void extensionKeysFromExtensionsXml() throws Exception {
-        var root = new SAXBuilder().build(new StringReader(EXTENSIONS_XML)).getRootElement();
+        var root = new SAXBuilder().build(Reader.of(EXTENSIONS_XML)).getRootElement();
 
         assertThat(RangeResolverMojo.extensionKeys(root)).containsExactly("eu.maveniverse.maven.nisse:extension");
     }
@@ -159,7 +159,7 @@ class RangeResolverMojoTest {
     @Test
     public void rewriteExtensionsUpdatesVersion() throws Exception {
         var root = new SAXBuilder()
-                .build(new StringReader(EXTENSIONS_XML.replace(
+                .build(Reader.of(EXTENSIONS_XML.replace(
                         "<extensions>", "<extensions xmlns=\"http://maven.apache.org/EXTENSIONS/1.2.0\">")))
                 .getRootElement();
 
