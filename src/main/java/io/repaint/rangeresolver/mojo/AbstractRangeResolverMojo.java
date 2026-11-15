@@ -3,6 +3,7 @@ package io.repaint.rangeresolver.mojo;
 import dev.zazr.collection.List;
 
 import io.repaint.rangeresolver.api.Resolved;
+import io.repaint.rangeresolver.lang.RepositoryResolver;
 
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
@@ -20,6 +21,7 @@ import org.apache.maven.scm.command.status.StatusScmResult;
 import org.apache.maven.scm.manager.ScmManager;
 import org.apache.maven.scm.provider.ScmProviderRepository;
 import org.apache.maven.scm.repository.ScmRepository;
+import org.jspecify.annotations.Nullable;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -63,9 +65,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     @Parameter(property = "allowSnapshots")
     String allowSnapshots = "";
 
-    /// The number of days a version must have been published before it is resolved, or zero for no cooldown.
+    /// Overrides the cooldown declared on every repository, in days. Zero turns the cooldown off; unset uses each
+    /// repository's own `cooldown`.
     @Parameter(property = "cooldownDays")
-    int cooldownDays = 0;
+    @Nullable Integer cooldownDays;
 
     @Parameter(defaultValue = "${session}", readonly = true)
     MavenSession mavenSession;
@@ -213,5 +216,11 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
         } catch (SAXException | ParserConfigurationException | IOException e) {
             return "";
         }
+    }
+
+    /// Applies the `cooldownDays` override to the resolver, when it is set.
+    RepositoryResolver withCooldownOverride(RepositoryResolver repositoryResolver) {
+        Integer days = cooldownDays;
+        return days == null ? repositoryResolver : repositoryResolver.withCooldownDays(days);
     }
 }
