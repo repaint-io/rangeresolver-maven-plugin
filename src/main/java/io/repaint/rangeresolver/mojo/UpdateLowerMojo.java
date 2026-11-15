@@ -48,15 +48,14 @@ public class UpdateLowerMojo extends AbstractRangeResolverMojo {
                             Files.newBufferedReader(deps.toPath(), UTF_8),
                             allowUnlocked,
                             allowSnapshots);
-                    RepositoryResolver repositoryResolver = createRepositoryResolver(
-                                    repositorySystem,
-                                    repositorySystemSession,
-                                    getLog()::info,
-                                    getLog()::warn,
-                                    allowUnlocked,
-                                    allowSnapshots,
-                                    updateSnapshots)
-                            .withCooldownDays(cooldownDays);
+                    RepositoryResolver repositoryResolver = withCooldownOverride(createRepositoryResolver(
+                            repositorySystem,
+                            repositorySystemSession,
+                            getLog()::info,
+                            getLog()::warn,
+                            allowUnlocked,
+                            allowSnapshots,
+                            updateSnapshots));
 
                     ResolutionResult resolutionResult =
                             repositoryResolver.resolveRanges(rangeResolver, resolutionSource, resolutionSource);

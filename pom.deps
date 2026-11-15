@@ -1,6 +1,6 @@
 repository https://repo1.maven.org/maven2/ as central;
 
-resolve highest io.repaint:io.repaint.rangeresolver:[1.1.0,2.0.0);
+resolve highest io.repaint:io.repaint.rangeresolver:[1.2.0,2.0.0);
 resolve highest org.antlr:antlr4-runtime:[4.13.2,5.0.0) via central;
 resolve highest org.apache.maven.plugins:maven-plugin-plugin:[3.16.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
 resolve highest org.apache.maven.plugins:maven-source-plugin:[3.4.0,4.0.0) via central filtering /^.*(alpha|beta|rc|pr|m|SNAPSHOT).*$/;
@@ -23,7 +23,7 @@ locked com.google.guava:failureaccess:1.0.3;
 locked com.palantir.javaformat:palantir-java-format:2.103.0;
 locked dev.zazr:zazr-core:0.5.0;
 locked io.repaint.maven:tiles-maven-plugin:2.47.0;
-locked io.repaint:io.repaint.rangeresolver:1.1.0;
+locked io.repaint:io.repaint.rangeresolver:1.2.0;
 locked org.antlr:antlr4-runtime:4.13.2;
 locked org.apache.maven.plugins:maven-dependency-plugin:3.11.0;
 locked org.apache.maven.plugins:maven-deploy-plugin:3.2.0;
