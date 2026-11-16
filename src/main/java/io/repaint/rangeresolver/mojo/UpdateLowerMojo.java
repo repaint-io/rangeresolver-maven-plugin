@@ -9,7 +9,6 @@ import io.repaint.rangeresolver.api.Resolved;
 import io.repaint.rangeresolver.lang.RepositoryResolver;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -20,6 +19,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import static io.repaint.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
 import static io.repaint.rangeresolver.lang.RepositoryResolver.createRepositoryResolver;
 import static io.repaint.rangeresolver.lang.RepositoryWriter.writeRangeResolveSource;
@@ -28,7 +29,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Mojo(name = "update-lower-bounds", defaultPhase = LifecyclePhase.INITIALIZE, inheritByDefault = false)
 public class UpdateLowerMojo extends AbstractRangeResolverMojo {
-    @Component
+    @Inject
     private RepositorySystem repositorySystem;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)

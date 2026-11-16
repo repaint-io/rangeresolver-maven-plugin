@@ -12,7 +12,6 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -42,6 +41,8 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.inject.Inject;
 
 import static io.repaint.rangeresolver.api.ArtifactType.DOCKER;
 import static io.repaint.rangeresolver.lang.RangeResolverProcessor.parseRangeResolver;
@@ -97,7 +98,7 @@ public class RangeResolverMojo extends AbstractRangeResolverMojo {
 
     private static final Pattern FROM_LINE = Pattern.compile("FROM ([a-zA-Z0-9\\-]*)(@sha256)?:*([a-zA-Z0-9\\-]*)(.*)");
 
-    @Component
+    @Inject
     private RepositorySystem repositorySystem;
 
     @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)

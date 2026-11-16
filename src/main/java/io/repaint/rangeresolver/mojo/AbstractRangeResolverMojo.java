@@ -9,7 +9,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
@@ -33,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,10 +44,10 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
 
     public static final String KEY_FORMAT = "%s:%s";
 
-    @Component
+    @Inject
     ScmManager scmManager;
 
-    @Component
+    @Inject
     MavenProjectHelper projectHelper;
 
     @Parameter(required = true, readonly = true, property = "project")
