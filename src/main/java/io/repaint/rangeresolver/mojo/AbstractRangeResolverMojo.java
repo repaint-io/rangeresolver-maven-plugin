@@ -26,9 +26,12 @@ import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,6 +96,23 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
         File pomFile = sourcePomFile(mavenSession);
         String pomBaseName = pomFile.getName().substring(0, pomFile.getName().lastIndexOf(".") + 1);
         return pomFile.toPath().resolveSibling(pomBaseName + "deps").toFile();
+    }
+
+    /// Finds the deps file nearest to `startDir`, checking it and then each parent directory in turn. In the
+    /// directory of the POM the build was started with, the deps file named after that POM is used, as with
+    /// [#resolveDepsFile(MavenSession)]; elsewhere, `pom.deps` is used.
+    static Optional<File> findNearestDepsFile(Path startDir, File requestedPom) {
+        Path requestedDir = requestedPom.toPath().toAbsolutePath().normalize().getParent();
+        String requestedBaseName =
+                requestedPom.getName().substring(0, requestedPom.getName().lastIndexOf(".") + 1);
+        for (Path dir = startDir.toAbsolutePath().normalize(); dir != null; dir = dir.getParent()) {
+            Path candidate =
+                    dir.equals(requestedDir) ? dir.resolve(requestedBaseName + "deps") : dir.resolve("pom.deps");
+            if (Files.isRegularFile(candidate)) {
+                return Optional.of(candidate.toFile());
+            }
+        }
+        return Optional.empty();
     }
 
     /**
@@ -204,8 +224,11 @@ public abstract class AbstractRangeResolverMojo extends AbstractMojo {
     }
 
     protected String getSourceReference(MavenSession session) {
+        return getSourceReference(sourcePomFile(session));
+    }
+
+    protected String getSourceReference(File pomFile) {
         try {
-            File pomFile = sourcePomFile(session);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
             Document doc = db.parse(pomFile);
